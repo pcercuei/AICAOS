@@ -23,10 +23,7 @@ struct function_flow_params
 
 struct function_params
 {
-	/* For each function, two mutexes will be used.
-	 * That way, we can transfer the output buffer
-	 * of the previous call while starting to
-	 * transfer the input buffer for a new call. */
+	/* Input and output buffers of the function. */
 	struct function_flow_params in;
 	struct function_flow_params out;
 };
@@ -59,7 +56,7 @@ struct call_params
  * sh4->arm channel, and one for the arm->sh4 channel. */
 struct io_channel
 {
-	/* Params of the function to call. */
+	/* Params of the call. */
 	struct call_params cparams;
 
 	/* Array of function params.
@@ -79,7 +76,7 @@ void __aica_share(aica_funcp_t func, const char *funcname, size_t sz_in, size_t 
  * define locally the remote function. */
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio);
 
-/* Called after the remote device requested an ID from a function name. */
+/* Unregister the handler at the given ID. */
 int aica_clear_handler(unsigned int id);
 
 /* Clear the whole table. */
