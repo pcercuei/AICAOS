@@ -198,3 +198,8 @@ void aica_interrupt(void)
 	g2_write_32(0xa07028a0, 0x20);
 }
 
+void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
+{
+	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[id], fparams, sizeof(struct function_params));
+}
+

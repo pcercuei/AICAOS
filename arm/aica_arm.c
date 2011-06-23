@@ -1,5 +1,5 @@
 
-typedef int size_t;
+#include <string.h>
 
 #include "../aica_common.h"
 #include "crt0.h"
@@ -58,5 +58,10 @@ void aica_interrupt_init(void)
 void aica_interrupt(void)
 {
 	*(unsigned int *)0x008028b8 = 0x20;
+}
+
+void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
+{
+	memcpy(&io_addr[SH_TO_ARM].fparams[id], fparams, sizeof(struct function_params));
 }
 
