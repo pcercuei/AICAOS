@@ -2,6 +2,8 @@
 #ifndef _AICA_H
 #define _AICA_H
 
+#include <sys/types.h>
+
 #define SH_TO_ARM 0
 #define ARM_TO_SH 1
 

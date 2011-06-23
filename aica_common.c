@@ -1,5 +1,7 @@
 
-#include <kos.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "aica_common.h"
 
 static struct Handler {
