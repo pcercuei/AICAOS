@@ -36,7 +36,8 @@ void aica_exit(void)
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
 	/* Protect from context changes. */
-	fiq_disable();
+	if (!inside_interrupt())
+	  fiq_disable();
 
 	while(*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync);
 	io_addr[ARM_TO_SH].cparams.id = id;
@@ -45,7 +46,9 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	io_addr[ARM_TO_SH].cparams.out = out;
 
 	aica_interrupt();
-	fiq_enable();
+
+	if (!inside_interrupt())
+	  fiq_enable();
 	return 0;
 }
 
