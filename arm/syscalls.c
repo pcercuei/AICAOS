@@ -4,6 +4,7 @@
 #include <sys/times.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* errno variable definition */
 #include <errno.h>
@@ -74,7 +75,7 @@ void * sbrk(ptrdiff_t incr)
 
 /* AICA-specific syscalls */
 
-#include "../aica_common.h"
+#include "../aica_syscalls.h"
 
 AICA_ADD_REMOTE(sh4_open, PRIORITY_DEFAULT);
 AICA_ADD_REMOTE(sh4_close, PRIORITY_DEFAULT);
@@ -89,11 +90,7 @@ AICA_ADD_REMOTE(sh4_write, PRIORITY_DEFAULT);
 int open(const char *name, int flags, int mode)
 {
 	int result;
-	struct {
-		const char *name;
-		int flags;
-		int mode;
-	} params = { name, flags, mode, };
+	struct open_param params = { name, strlen(name), flags, mode, };
 
 	if ( sh4_open(&result, &params) != 0 ) {
 		errno = EAICA;
@@ -118,10 +115,7 @@ int close(int file)
 int fstat(int file, struct stat *st)
 {
 	int result;
-	struct {
-		int file;
-		struct stat *st;
-	} params = { file, st, };
+	struct fstat_param params = { file, st, };
 
 	if ( sh4_fstat(&result, &params) != 0 ) {
 		errno = EAICA;
@@ -134,10 +128,7 @@ int fstat(int file, struct stat *st)
 int stat(const char *file, struct stat *st)
 {
 	int result;
-	struct {
-		const char *file;
-		struct stat *st;
-	} params = { file, st, };
+	struct stat_param params = { file, strlen(file), st, };
 
 	if ( sh4_stat(&result, &params) != 0 ) {
 		errno = EAICA;
@@ -162,10 +153,7 @@ int isatty(int file)
 int link(const char *old, const char *new)
 {
 	int result;
-	struct {
-		const char *old;
-		const char *new;
-	} params = { old, new, };
+	struct link_param params = { old, strlen(old), new, strlen(new), };
 
 	if ( sh4_link(&result, &params) != 0 ) {
 		errno = EAICA;
@@ -178,11 +166,7 @@ int link(const char *old, const char *new)
 off_t lseek(int file, off_t ptr, int dir)
 {
 	int result;
-	struct {
-		int file;
-		int ptr;
-		int dir;
-	} params = { file, ptr, dir, };
+	struct lseek_param params = { file, ptr, dir, };
 
 	if ( sh4_lseek(&result, &params) != 0 ) {
 		errno = EAICA;
