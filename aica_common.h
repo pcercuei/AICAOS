@@ -11,6 +11,13 @@
 
 #define FUNCNAME_MAX_LENGTH 0x20
 
+/* Default priority for a function call */
+#define PRIORITY_DEFAULT 10
+
+/* EAICA error for 'errno'.
+ * It means that the function call did not success. */
+#define EAICA 101
+
 typedef int (*aica_funcp_t)(void *, void *);
 
 struct function_flow_params
