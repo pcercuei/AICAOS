@@ -122,13 +122,11 @@ void aica_exit(void);
 
 #define AICA_ADD_REMOTE(func, prio) \
   static unsigned int _##func##_id = -1; \
-  int func##(void *out, void *in) \
+  int func(void *out, void *in) \
   { \
 	if (_##func##_id < 0) { \
-		if (__aica_call(0, #func, &_##func##_id, 0) < 0) { \
-			fprintf(stderr, "No ID for function \"%s\".\n", #func); \
+		if (__aica_call(0, #func, &_##func##_id, 0) < 0) \
 			return -1; \
-		} \
 	} \
 	return __aica_call(_##func##_id, in, out, prio); \
   }
