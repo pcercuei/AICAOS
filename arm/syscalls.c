@@ -1,4 +1,10 @@
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/times.h>
+#include <unistd.h>
+#include <stdlib.h>
+
 /* errno variable definition */
 #include <errno.h>
 #undef errno
@@ -8,7 +14,7 @@ extern int errno;
 char *__env[1] = { 0 };
 char **environ = __env;
 
-int execve(char *name, char **argv, char **env)
+int execve(const char *name, char * const argv[], char * const env[])
 {
 	errno = ENOMEM;
 	return -1;
@@ -25,18 +31,13 @@ int getpid(void)
 	return 1;
 }
 
-int isatty(int file)
-{
-	return 1;
-}
-
 int kill(int pid, int sig)
 {
 	errno = EINVAL;
 	return -1;
 }
 
-int times(struct tms *buf)
+clock_t times(struct tms *buf)
 {
 	return -1;
 }
@@ -51,7 +52,7 @@ int wait(int *status)
 register char * stack_ptr asm ("sp");
 static char *heap_end = (char*) 0;
 
-caddr_t sbrk(int incr)
+void * sbrk(ptrdiff_t incr)
 {
 	extern char _end;		/* Defined by the linker */
 	char *prev_heap_end;
@@ -62,10 +63,166 @@ caddr_t sbrk(int incr)
 	prev_heap_end = heap_end;
 	if (heap_end + incr > stack_ptr) {
 		write (1, "Heap and stack collision\n", 25);
-		abort ();
+		abort();
 	}
 
 	heap_end += incr;
-	return (caddr_t) prev_heap_end;
+	return prev_heap_end;
+}
+
+
+
+/* AICA-specific syscalls */
+
+#include "../aica_common.h"
+
+AICA_ADD_REMOTE(sh4_open, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_close, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_fstat, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_stat, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_isatty, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_link, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_lseek, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_read, PRIORITY_DEFAULT);
+AICA_ADD_REMOTE(sh4_write, PRIORITY_DEFAULT);
+
+int open(const char *name, int flags, int mode)
+{
+	int result;
+	struct {
+		const char *name;
+		int flags;
+		int mode;
+	} params = { name, flags, mode, };
+
+	if ( sh4_open(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+int close(int file)
+{
+	int result;
+
+	if ( sh4_close(&result, &file) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+int fstat(int file, struct stat *st)
+{
+	int result;
+	struct {
+		int file;
+		struct stat *st;
+	} params = { file, st, };
+
+	if ( sh4_fstat(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+int stat(const char *file, struct stat *st)
+{
+	int result;
+	struct {
+		const char *file;
+		struct stat *st;
+	} params = { file, st, };
+
+	if ( sh4_stat(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+int isatty(int file)
+{
+	int result;
+
+	if ( sh4_isatty(&result, &file) != 0 ) {
+		errno = EAICA;
+		return 0;
+	}
+
+	return result;
+}
+
+int link(const char *old, const char *new)
+{
+	int result;
+	struct {
+		const char *old;
+		const char *new;
+	} params = { old, new, };
+
+	if ( sh4_link(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+off_t lseek(int file, off_t ptr, int dir)
+{
+	int result;
+	struct {
+		int file;
+		int ptr;
+		int dir;
+	} params = { file, ptr, dir, };
+
+	if ( sh4_lseek(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+_READ_WRITE_RETURN_TYPE read(int file, void *ptr, size_t len)
+{
+	int result;
+	struct {
+		int file;
+		void *ptr;
+		int len;
+	} params = { file, ptr, len, };
+
+	if ( sh4_read(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
+}
+
+_READ_WRITE_RETURN_TYPE write(int file, const void *ptr, size_t len)
+{
+	int result;
+	struct {
+		int file;
+		const void *ptr;
+		int len;
+	} params = { file, ptr, len, };
+
+	if ( sh4_write(&result, &params) != 0 ) {
+		errno = EAICA;
+		return -1;
+	}
+
+	return result;
 }
 
