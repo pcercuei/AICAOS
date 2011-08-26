@@ -2,6 +2,7 @@
 #include <kos.h>
 #include <alloca.h>
 
+#include "aica_sh4.h"
 #include "../aica_syscalls.h"
 
 static SHARED(sh4_open)
@@ -113,5 +114,19 @@ static SHARED(sh4_write)
 	*result = write(p->file, buf, p->len);
 	free(buf);
 	return 0;
+}
+
+
+void aica_init_syscalls(void)
+{
+	AICA_SHARE(sh4_open, sizeof(struct open_param), sizeof(int));
+	AICA_SHARE(sh4_close, sizeof(int), sizeof(int));
+	AICA_SHARE(sh4_fstat, sizeof(struct fstat_param), sizeof(int));
+	AICA_SHARE(sh4_stat, sizeof(struct stat_param), sizeof(int));
+	AICA_SHARE(sh4_isatty, sizeof(int), sizeof(int));
+	AICA_SHARE(sh4_link, sizeof(struct link_param), sizeof(int));
+	AICA_SHARE(sh4_lseek, sizeof(struct lseek_param), sizeof(off_t));
+	AICA_SHARE(sh4_read, sizeof(struct read_param), sizeof(_READ_WRITE_RETURN_TYPE));
+	AICA_SHARE(sh4_write, sizeof(struct write_param), sizeof(_READ_WRITE_RETURN_TYPE));
 }
 
