@@ -70,15 +70,13 @@ void aica_clear_handler_table(void)
 int aica_find_id(unsigned int *id, char *funcname)
 {
 	struct Handler *hdl = handlers;
-	int i = 0;
 
 	while(hdl) {
 		if (strcmp(hdl->funcname, funcname) == 0) {
-			*id = i;
+			*id = hdl->id;
 			return 0;
 		}
 		hdl = hdl->next;
-		i++;
 	}
 
 	return -1;
