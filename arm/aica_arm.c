@@ -45,6 +45,9 @@ void aica_exit(void)
 
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
+	/* Wait here if a previous call of the same function is pending. */
+	while(((volatile int) io_addr[ARM_TO_SH].fparams[id].call_status) == FUNCTION_CALL_PENDING);
+
 	/* Protect from context changes. */
 	if (!inside_interrupt())
 	  fiq_disable();
