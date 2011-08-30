@@ -27,6 +27,12 @@ int aica_init(char *fn)
 
 	fiq_enable();
 	aica_interrupt_init();
+
+	*(struct io_channel **)0x001ffffc = io_addr;
+
+	/* We will continue when the SH-4 will decide so. */
+	while ( *(volatile int *) 0x1ffffc != 0);
+
 	return 0;
 }
 
