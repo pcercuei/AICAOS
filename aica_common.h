@@ -19,6 +19,9 @@
  * It means that the function call did not success. */
 #define EAICA 101
 
+#define FUNCTION_CALL_AVAIL   1
+#define FUNCTION_CALL_PENDING 2
+
 typedef int (*aica_funcp_t)(void *, void *);
 
 struct function_flow_params
@@ -36,6 +39,10 @@ struct function_params
 	/* Input and output buffers of the function. */
 	struct function_flow_params in;
 	struct function_flow_params out;
+
+	/* Indicates whether the previous call of that function
+	 * is still pending or has been completed. */
+	int call_status;
 };
 
 /* Contains the parameters relative to one

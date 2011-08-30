@@ -25,6 +25,7 @@ void __aica_share(aica_funcp_t func, const char *funcname, size_t sz_in, size_t 
 	struct function_params fparams = {
 		{ sz_in, malloc(sz_in), },
 		{ sz_out, malloc(sz_out), },
+		FUNCTION_CALL_AVAIL,
 	};
 
 	aica_update_fparams_table(id, &fparams);
