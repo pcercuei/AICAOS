@@ -179,11 +179,7 @@ off_t lseek(int file, off_t ptr, int dir)
 _READ_WRITE_RETURN_TYPE read(int file, void *ptr, size_t len)
 {
 	int result;
-	struct {
-		int file;
-		void *ptr;
-		int len;
-	} params = { file, ptr, len, };
+	struct read_param params = { file, ptr, len, };
 
 	if ( sh4_read(&result, &params) != 0 ) {
 		errno = EAICA;
@@ -196,11 +192,7 @@ _READ_WRITE_RETURN_TYPE read(int file, void *ptr, size_t len)
 _READ_WRITE_RETURN_TYPE write(int file, const void *ptr, size_t len)
 {
 	int result;
-	struct {
-		int file;
-		const void *ptr;
-		int len;
-	} params = { file, ptr, len, };
+	struct write_param params = { file, ptr, len, };
 
 	if ( sh4_write(&result, &params) != 0 ) {
 		errno = EAICA;
