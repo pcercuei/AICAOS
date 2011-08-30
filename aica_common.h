@@ -128,7 +128,7 @@ void aica_exit(void);
   int func(void *out, void *in)
 
 #define AICA_ADD_REMOTE(func, prio) \
-  static unsigned int _##func##_id = -1; \
+  static int _##func##_id = -1; \
   int func(void *out, void *in) \
   { \
 	if (_##func##_id < 0) { \
