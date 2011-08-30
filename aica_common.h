@@ -8,7 +8,7 @@
 #define SH_TO_ARM 0
 #define ARM_TO_SH 1
 
-#define NB_MAX_FUNCTIONS 0x100
+#define NB_MAX_FUNCTIONS 0x40
 
 #define FUNCNAME_MAX_LENGTH 0x20
 
