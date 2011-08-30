@@ -3,6 +3,7 @@
 #define _AICA_H
 
 #include <sys/types.h>
+#include <errno.h>
 
 #define SH_TO_ARM 0
 #define ARM_TO_SH 1
@@ -137,6 +138,8 @@ void aica_exit(void);
 	if (_##func##_id < 0) { \
 		if (__aica_call(0, #func, &_##func##_id, 0) < 0) \
 			return -1; \
+		if (_##func##_id < 0) \
+			return -EAGAIN; \
 	} \
 	return __aica_call(_##func##_id, in, out, prio); \
   }
