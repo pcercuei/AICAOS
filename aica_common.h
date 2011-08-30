@@ -100,6 +100,9 @@ int aica_find_id(unsigned int *id, char *funcname);
 /* Return the function associated to an ID. */
 aica_funcp_t aica_get_func_from_id(unsigned int id);
 
+/* Return the name of the function associated to an ID. */
+const char * aica_get_funcname_from_id(unsigned int id);
+
 /* Send data to the remote processor. */
 void aica_upload(void *dest, const void *from, size_t size);
 
