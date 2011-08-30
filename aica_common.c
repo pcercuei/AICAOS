@@ -87,9 +87,11 @@ int aica_find_id(unsigned int *id, char *funcname)
 aica_funcp_t aica_get_func_from_id(unsigned int id)
 {
 	struct Handler *hdl = handlers;
+
 	while(hdl) {
 		if (hdl->id == id)
 		  return hdl->handler;
+		hdl = hdl->next;
 	}
 
 	return NULL;
