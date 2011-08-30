@@ -37,6 +37,9 @@ reset:
 # FIQ code adapted from the Marcus AICA example
 fiq:
 
+	mov r8,#1
+	str r8,in_fiq
+
 	# Grab interrupt type (store as parameter)
 	ldr	r8,intreq
 	ldr	r9,[r8]
@@ -67,11 +70,7 @@ fiq_sh4:
     str r8,[r9,#8]
     str r8,[r9,#8]
 
-    ldr sp,=__fiq_stack_addr
-    stmfd sp!, {r0-r7,lr}
     bl aica_sh4_fiq_hdl
-    ldmfd sp!, {r0-r7,lr}
-
     b fiq_done
 
 
@@ -117,8 +116,9 @@ fiq_done:
 	str	r9,[r8]
 	str	r9,[r8]
 
-	# Restore regs and return
-	#ldmfd	sp!, {r0-r14}
+	mov r8,#0
+	str r8,in_fiq
+
 	subs pc,r14,#4
 
 irq_enable:
@@ -148,16 +148,23 @@ fiq_disable:
 
 
 inside_interrupt:
-    ldr r0,=__fiq_stack_addr
-    cmp r13,r0
-    movhi r0,#0
-    movls r0,#1
+    ldr r0,in_fiq
     mov pc,lr
 
 
 start:
 	# Setup a basic stack
-    ldr sp,=__stack_addr
+    ldr sp,=__stack
+
+	ldr r0,=__bss_end__
+	ldr r1,=__bss_start
+	mov r2,#0
+
+	clear_bss_loop:
+		sub r0,r0,#4
+		str r2,[r0]
+		cmp r0,r1
+		bls clear_bss_loop
 
     # Set the SH-4 interrupt code to 6
 	ldr r10,scpu_interrupt
@@ -190,6 +197,8 @@ rsrvd:
 
 .align
 
+in_fiq:
+	.long 0x0
 intreq:
 	.long 0x00802d00
 intclr:
