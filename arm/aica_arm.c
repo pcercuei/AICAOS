@@ -54,6 +54,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	io_addr[ARM_TO_SH].cparams.prio = prio;
 	io_addr[ARM_TO_SH].cparams.in = in;
 	io_addr[ARM_TO_SH].cparams.out = out;
+	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
 
 	aica_interrupt();
 
