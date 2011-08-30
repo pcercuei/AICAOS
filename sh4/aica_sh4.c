@@ -68,7 +68,7 @@ int aica_init(char *fn)
 
 	/* We load the driver into the shared RAM. */
 	spu_disable();
-	spu_memload(0x0, buffer, size);
+	aica_upload(0x0, buffer, size);
 	spu_enable();
 
 	fs_close(file);
