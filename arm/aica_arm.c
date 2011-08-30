@@ -63,6 +63,13 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 	if (!inside_interrupt())
 	  fiq_enable();
+
+	/* If there is data to be sent back, we will wait until the call completes.
+	 * /!\: The call will return immediately even if the remote function has yet to be
+	 *      called if there is no data to be retrieved! */
+	if (io_addr[ARM_TO_SH].fparams[id].out.size > 0)
+		while(((volatile int) io_addr[ARM_TO_SH].fparams[id].call_status) == FUNCTION_CALL_PENDING);
+
 	return 0;
 }
 
