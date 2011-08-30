@@ -3,9 +3,8 @@
 
 #include "../aica_common.h"
 
-/* /!\ Invalid pointers - Do NOT deference them! */
+/* /!\ Invalid pointer - Do NOT deference it! */
 static struct io_channel *io_addr_arm;
-static struct io_channel *io_addr;
 
 static mutex_t * io_mutex;
 static mutex_t * func_mutex[NB_MAX_FUNCTIONS];
@@ -79,7 +78,6 @@ int aica_init(char *fn)
 		g2_fifo_wait();
 		io_addr_arm = (struct io_channel *)g2_read_32(0xa09FFFFF);
 	} while(!io_addr_arm);
-	io_addr = (struct io_channel *)((char *)io_addr_arm + 0xa09FFFFF);
 
 	//	spu_dma_init();
 	aica_interrupt_init();
