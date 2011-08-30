@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "../aica_common.h"
@@ -16,6 +17,8 @@ int aica_init(char *fn)
 	/* Discard GCC warnings about unused parameter */
 	(void)fn;
 
+	io_addr = (struct io_channel *) calloc(2, sizeof(struct io_channel));
+
 	aica_clear_handler_table();
 
 	/* That function will be used by the remote processor to get IDs
@@ -30,6 +33,7 @@ int aica_init(char *fn)
 void aica_exit(void)
 {
 	aica_clear_handler_table();
+	free(io_addr);
 }
 
 
