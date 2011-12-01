@@ -27,7 +27,7 @@ int aica_init(char *fn)
 	 * from the names of the functions to call. */
 	AICA_SHARE(get_arm_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
 
-	fiq_enable();
+	int_enable();
 	aica_interrupt_init();
 
 	*(struct io_channel **) __io_init = io_addr;
@@ -51,8 +51,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	while(((volatile int) io_addr[ARM_TO_SH].fparams[id].call_status) == FUNCTION_CALL_PENDING);
 
 	/* Protect from context changes. */
-	if (!inside_interrupt())
-	  fiq_disable();
+	int_disable();
 
 	while(*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync);
 	io_addr[ARM_TO_SH].cparams.id = id;
@@ -62,9 +61,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
 
 	aica_interrupt();
-
-	if (!inside_interrupt())
-	  fiq_enable();
+	int_enable();
 
 	/* If there is data to be sent back, we will wait until the call completes.
 	 * /!\: The call will return immediately even if the remote function has yet to be

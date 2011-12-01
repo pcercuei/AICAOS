@@ -3,15 +3,16 @@
 
 void reset(void);
 
-void fiq_enable(void);
-void fiq_disable(void);
+void int_toggle(int enable);
 
-void irq_enable(void);
-void irq_disable(void);
+inline void int_enable(void)
+{
+	int_toggle(1);
+}
 
-int inside_interrupt(void);
-
-/* Called from crt0.s */
-void aica_sh4_fiq_hdl(void);
+inline void int_disable(void)
+{
+	int_toggle(0);
+}
 
 #endif
