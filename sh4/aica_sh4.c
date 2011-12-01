@@ -201,3 +201,13 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[id], fparams, sizeof(struct function_params));
 }
 
+void aica_upload(void *dest, const void *from, size_t size)
+{
+	spu_memload((unsigned int)dest, from, size);
+}
+
+void aica_download(void *dest, const void *from, size_t size)
+{
+	spu_memread(dest, (unsigned int)from, size);
+}
+
