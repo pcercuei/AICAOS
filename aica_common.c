@@ -23,8 +23,8 @@ void __aica_share(aica_funcp_t func, const char *funcname, size_t sz_in, size_t 
 	  id = handlers->id +1;
 
 	struct function_params fparams = {
-		{ sz_in, malloc(sz_in), },
-		{ sz_out, malloc(sz_out), },
+		{ sz_in, sz_in ? malloc(sz_in) : NULL, },
+		{ sz_out, sz_out ? malloc(sz_out) : NULL, },
 		FUNCTION_CALL_AVAIL,
 	};
 
