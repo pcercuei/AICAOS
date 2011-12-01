@@ -5,6 +5,8 @@
 #include "../aica_common.h"
 #include "crt0.h"
 
+extern void * __io_init;
+
 static struct io_channel *io_addr;
 
 static SHARED(get_arm_func_id)
@@ -28,10 +30,10 @@ int aica_init(char *fn)
 	fiq_enable();
 	aica_interrupt_init();
 
-	*(struct io_channel **)0x001ffffc = io_addr;
+	*(struct io_channel **) __io_init = io_addr;
 
 	/* We will continue when the SH-4 will decide so. */
-	while ( *(volatile int *) 0x1ffffc != 0);
+	while ( *(volatile int *) __io_init != 0);
 
 	return 0;
 }
