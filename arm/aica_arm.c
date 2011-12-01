@@ -89,6 +89,3 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 	memcpy(&io_addr[SH_TO_ARM].fparams[id], fparams, sizeof(struct function_params));
 }
 
-void aica_sh4_fiq_hdl(void)
-{
-}
