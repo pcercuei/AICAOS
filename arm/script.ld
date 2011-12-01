@@ -1,5 +1,4 @@
 
-ENTRY(start)
 STARTUP(crt0.o)
 
 SECTIONS
