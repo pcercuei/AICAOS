@@ -82,6 +82,12 @@ int aica_init(char *fn)
 
 	//	spu_dma_init();
 	aica_interrupt_init();
+
+	/* Notify the ARM that we are ready to receive calls. */
+	g2_fifo_wait();
+	g2_write_32(__io_init, 0);
+
+	printf("ARM successfully initialized.\n");
 	return 0;
 }
 
