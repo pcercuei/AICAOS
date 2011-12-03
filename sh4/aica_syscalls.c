@@ -2,7 +2,6 @@
 #include <kos.h>
 #include <alloca.h>
 
-#include "aica_sh4.h"
 #include "../aica_syscalls.h"
 
 static SHARED(sh4_open)
