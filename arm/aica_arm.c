@@ -47,17 +47,21 @@ void aica_exit(void)
 
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
-	/* Wait here if a previous call of the same function is pending. */
-	while(((volatile int) io_addr[ARM_TO_SH].fparams[id].call_status) == FUNCTION_CALL_PENDING);
+	/* Wait here if a previous call is pending. */
+	while((*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync)
+				|| (*(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status == FUNCTION_CALL_PENDING))
+	{
+		/* TODO: yield the thread (when there'll be one... */
+	}
 
 	/* Protect from context changes. */
 	int_disable();
 
-	while(*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync);
 	io_addr[ARM_TO_SH].cparams.id = id;
 	io_addr[ARM_TO_SH].cparams.prio = prio;
 	io_addr[ARM_TO_SH].cparams.in = in;
 	io_addr[ARM_TO_SH].cparams.out = out;
+	io_addr[ARM_TO_SH].cparams.sync = 255;
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
 
 	aica_interrupt();
@@ -66,8 +70,11 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	/* If there is data to be sent back, we will wait until the call completes.
 	 * /!\: The call will return immediately even if the remote function has yet to be
 	 *      called if there is no data to be retrieved! */
-	if (io_addr[ARM_TO_SH].fparams[id].out.size > 0)
-		while(((volatile int) io_addr[ARM_TO_SH].fparams[id].call_status) == FUNCTION_CALL_PENDING);
+	if (io_addr[ARM_TO_SH].fparams[id].out.size > 0) {
+		while( *(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status == FUNCTION_CALL_PENDING) {
+			/* TODO: yield the thread */
+		}
+	}
 
 	return 0;
 }
