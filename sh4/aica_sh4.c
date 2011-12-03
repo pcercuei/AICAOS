@@ -5,6 +5,7 @@
 
 /* /!\ Invalid pointer - Do NOT deference it! */
 static struct io_channel *io_addr_arm;
+static unsigned int __io_init = 0xa09ffffc;
 
 static mutex_t * io_mutex;
 static mutex_t * func_mutex[NB_MAX_FUNCTIONS];
@@ -33,7 +34,7 @@ int aica_init(char *fn)
 	size_t i;
 
 	aica_clear_handler_table();
-	g2_write_32(0xa0900000, 0);
+	g2_write_32(__io_init, 0);
 
 	/* That function will be used by the remote processor to get IDs
 	 * from the names of the functions to call. */
@@ -73,10 +74,10 @@ int aica_init(char *fn)
 	fs_close(file);
 	free(buffer);
 
-	/* We wait until the ARM-7 writes at the address 0x1FFFFF the message buffer's address. */
+	/* We wait until the ARM-7 writes at the address __io_init the message buffer's address. */
 	do {
 		g2_fifo_wait();
-		io_addr_arm = (struct io_channel *)g2_read_32(0xa09FFFFF);
+		io_addr_arm = (struct io_channel *)g2_read_32(__io_init);
 	} while(!io_addr_arm);
 
 	//	spu_dma_init();
