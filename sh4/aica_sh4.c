@@ -1,6 +1,7 @@
 
 #include <kos.h>
 
+#include "../aica_syscalls.h"
 #include "../aica_common.h"
 
 /* /!\ Invalid pointer - Do NOT deference it! */
@@ -80,6 +81,7 @@ int aica_init(char *fn)
 
 	AICA_SHARE(__arm_call_finished, 0, 0);
 
+	aica_init_syscalls();
 	//	spu_dma_init();
 	aica_interrupt_init();
 

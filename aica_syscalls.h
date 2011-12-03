@@ -4,6 +4,8 @@
 
 #include "aica_common.h"
 
+void aica_init_syscalls(void);
+
 struct open_param {
 	const char *name;
 	const int namelen;
