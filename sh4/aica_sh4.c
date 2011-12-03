@@ -190,8 +190,11 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 	return NULL;
 }
 
-// TODO
-static void acknowledge() { }
+static void acknowledge(void)
+{
+	g2_fifo_wait();
+	g2_write_32(AICA_FROM_SH4(REG_SH4_INT_RESET), MAGIC_CODE);
+}
 
 static void aica_arm_fiq_hdl(uint32_t code)
 {
