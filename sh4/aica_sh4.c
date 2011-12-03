@@ -210,6 +210,9 @@ static void aica_arm_fiq_hdl(uint32_t code)
 
 void aica_interrupt_init(void)
 {
+	/* Cancel any pending interrupt. */
+	acknowledge();
+
 	asic_evt_set_handler(ASIC_EVT_SPU_IRQ, aica_arm_fiq_hdl);
 	asic_evt_enable(ASIC_EVT_SPU_IRQ, ASIC_IRQ9);
 }
