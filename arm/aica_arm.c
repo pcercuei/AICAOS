@@ -27,8 +27,8 @@ int aica_init(char *fn)
 	 * from the names of the functions to call. */
 	AICA_SHARE(get_arm_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
 
-	int_enable();
 	aica_interrupt_init();
+	int_enable();
 
 	*(struct io_channel **) __io_init = io_addr;
 
