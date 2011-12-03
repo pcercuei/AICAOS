@@ -143,8 +143,9 @@ void aica_exit(void);
   int func(void *out, void *in) \
   { \
 	if (_##func##_id < 0) { \
-		if (__aica_call(0, #func, &_##func##_id, 0) < 0) \
-			return -1; \
+		int res = __aica_call(0, #func, &_##func##_id, 0); \
+		if (res < 0) \
+			return res; \
 		if (_##func##_id < 0) \
 			return -EAGAIN; \
 	} \
