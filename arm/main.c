@@ -12,6 +12,7 @@ int main(int argc, char **argv)
 
 	while (sh4_puts(NULL, "Hello World!") == -EAGAIN);
 
+	aica_exit();
 	return 0;
 }
 

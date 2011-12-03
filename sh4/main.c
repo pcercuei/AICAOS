@@ -39,6 +39,8 @@ int main(int argc, char **argv)
 	printf("SH4: My job\'s complete.\n");
 
 	while(!done) thd_pass();
+
+	aica_exit();
 	return 0;
 }
 
