@@ -148,27 +148,41 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	return 0;
 }
 
-void * aica_arm_fiq_hdl_thd(void *param)
+static void * aica_arm_fiq_hdl_thd(void *param)
 {
 	struct call_params *cparams = (struct call_params *) param;
 	struct function_params fparams;
+	unsigned int flag = FUNCTION_CALL_AVAIL;
 
-	aica_download(&fparams, &io_addr_arm[ARM_TO_SH].fparams[cparams->id], sizeof(fparams));
+	aica_download(&fparams,
+				&io_addr_arm[ARM_TO_SH].fparams[cparams->id],
+				sizeof(struct function_params));
 
-	/* Download the input data. */
+	/* Download the input data if any. */
 	if (fparams.in.size > 0)
-	  aica_download(fparams.in.ptr, cparams->in, fparams.in.size);
+		aica_download(fparams.in.ptr, cparams->in, fparams.in.size);
+
+	/* Get a handle from the ID. */
+	aica_funcp_t func = aica_get_func_from_id(cparams->id);
+	if (!func) {
+		fprintf(stderr, "No function found for ID %i.\n", cparams->id);
+		free(param);
+		return NULL;
+	}
 
 	/* Call the function. */
-	aica_funcp_t func = aica_get_func_from_id(cparams->id);
 	(*func)(fparams.in.ptr, fparams.out.ptr);
 
 	/* Upload the output data. */
 	if (fparams.out.size > 0)
-	  aica_upload(cparams->out, fparams.out.ptr, fparams.out.size);
+		aica_upload(cparams->out, fparams.out.ptr, fparams.out.size);
 
 	/* Free the call_params structure allocated in aica_arm_fiq_hdl(). */
 	free(param);
+
+	/* Inform the ARM that the call is complete. */
+	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[cparams->id].call_status,
+				&flag, sizeof(unsigned int));
 
 	return NULL;
 }
