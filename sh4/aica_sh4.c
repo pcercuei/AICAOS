@@ -36,18 +36,12 @@ int aica_init(char *fn)
 	aica_clear_handler_table();
 	g2_write_32(__io_init, 0);
 
-	/* That function will be used by the remote processor to get IDs
-	 * from the names of the functions to call. */
-	AICA_SHARE(__get_sh4_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
-
 	/* Initialize the mutexes. */
 	io_mutex = mutex_create();
 	for (i=0; i<NB_MAX_FUNCTIONS; i++) {
 		func_mutex[i] = mutex_create();
 		sync[i] = 0;
 	}
-
-	AICA_SHARE(__arm_call_finished, 0, 0);
 
 	/* TODO: It would be faster to use mmap here, if the driver lies on the romdisk. */
 	file_t file = fs_open(fn, O_RDONLY);
@@ -79,6 +73,12 @@ int aica_init(char *fn)
 		g2_fifo_wait();
 		io_addr_arm = (struct io_channel *)g2_read_32(__io_init);
 	} while(!io_addr_arm);
+
+	/* That function will be used by the remote processor to get IDs
+	 * from the names of the functions to call. */
+	AICA_SHARE(__get_sh4_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
+
+	AICA_SHARE(__arm_call_finished, 0, 0);
 
 	//	spu_dma_init();
 	aica_interrupt_init();
