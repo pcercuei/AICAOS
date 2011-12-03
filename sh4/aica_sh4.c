@@ -35,6 +35,8 @@ int aica_init(char *fn)
 	size_t i;
 
 	aica_clear_handler_table();
+
+	g2_fifo_wait();
 	g2_write_32(__io_init, 0);
 
 	/* Initialize the mutexes. */
