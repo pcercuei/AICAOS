@@ -181,12 +181,13 @@ static void aica_arm_fiq_hdl(uint32_t code)
 	kthread_t *thd;
 	struct call_params *cparams;
 	
+	/* Retrieve the call parameters */
 	cparams = malloc(sizeof(struct call_params));
-	aica_download(cparams, &io_addr_arm[ARM_TO_SH].cparams, sizeof(cparams));
+	aica_download(cparams, &io_addr_arm[ARM_TO_SH].cparams, sizeof(struct call_params));
 
 	/* The call data has been read, clear the sync flag and acknowledge. */
 	cparams->sync = 0;
-	aica_upload(&io_addr_arm[ARM_TO_SH].cparams.sync, &cparams->sync, sizeof(cparams->sync));
+	aica_upload(&io_addr_arm[ARM_TO_SH].cparams, cparams, sizeof(struct call_params));
 	acknowledge();
 
 	thd = thd_create(THD_DEFAULTS, aica_arm_fiq_hdl_thd, cparams);
