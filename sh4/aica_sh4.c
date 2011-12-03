@@ -173,7 +173,7 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 	}
 
 	/* Call the function. */
-	(*func)(fparams.in.ptr, fparams.out.ptr);
+	(*func)(fparams.out.ptr, fparams.in.ptr);
 
 	/* Upload the output data. */
 	if (fparams.out.size > 0)
