@@ -1,21 +1,11 @@
 
 #include <stdint.h>
 
+#include "../aica_registers.h"
+
 /* When F bit (resp. I bit) is set, FIQ (resp. IRQ) is disabled. */
 #define F_BIT 0x40
 #define I_BIT 0x80
-
-/* AICA registers */
-#define INTBusRequest  0x00802808
-#define INTTimerStart  0x00802880
-#define INTCtrlSCPU    0x0080289c
-#define INTRequest     0x00802d00
-#define INTClear       0x00802d04
-
-/* Interruption codes */
-#define TIMER_INTERRUPT_INT_CODE 2
-#define BUS_REQUEST_INT_CODE 5
-#define SH4_INTERRUPT_INT_CODE 6
 
 void int_toggle(int enable)
 {
@@ -34,15 +24,13 @@ void aica_sh4_fiq_hdl(void)
 
 void __attribute__((interrupt ("FIQ"))) fiq_hdl(void)
 {
-	uint32_t code = 0x7 & *(uint32_t *) INTRequest;
-	volatile uint32_t *intclr = (uint32_t *) INTClear;
 	uint32_t i;
 
-	switch (code) {
+	switch (*(unsigned int *) REG_ARM_FIQ_CODE & 0x7) {
 		case TIMER_INTERRUPT_INT_CODE:
 			break;
 		case BUS_REQUEST_INT_CODE:
-			while(0x100 & *(volatile uint32_t *) INTBusRequest);
+			while(0x100 & *(volatile unsigned int *) REG_BUS_REQUEST);
 			break;
 		case SH4_INTERRUPT_INT_CODE:
 			aica_sh4_fiq_hdl();
@@ -51,6 +39,6 @@ void __attribute__((interrupt ("FIQ"))) fiq_hdl(void)
 
 	/* Acknowledge */
 	for (i=0; i<4; i++)
-		*intclr = 1;
+		*(unsigned int *) REG_ARM_FIQ_ACK = 1;
 }
 

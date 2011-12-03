@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../aica_registers.h"
 #include "../aica_common.h"
 #include "crt0.h"
 
@@ -82,13 +83,24 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 void aica_interrupt_init(void)
 {
-	*(unsigned int *)0x008028b4 = 0x20;
+	/* Set the FIQ code */
+	*(unsigned int *) REG_ARM_FIQ_BIT_2  = (SH4_INTERRUPT_INT_CODE & 4) ? MAGIC_CODE : 0;
+	*(unsigned int *) REG_ARM_FIQ_BIT_1  = (SH4_INTERRUPT_INT_CODE & 2) ? MAGIC_CODE : 0;
+	*(unsigned int *) REG_ARM_FIQ_BIT_0  = (SH4_INTERRUPT_INT_CODE & 1) ? MAGIC_CODE : 0;
+
+	/* Allow the SH4 to raise interrupts on the ARM */
+	*(unsigned int *) REG_ARM_INT_ENABLE = MAGIC_CODE;
+
+	/* Allow the ARM to raise interrupts on the SH4 */
+	*(unsigned int *) REG_SH4_INT_ENABLE = MAGIC_CODE;
 }
+
 
 void aica_interrupt(void)
 {
-	*(unsigned int *)0x008028b8 = 0x20;
+	*(unsigned int *) REG_SH4_INT_SEND = MAGIC_CODE;
 }
+
 
 void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 {

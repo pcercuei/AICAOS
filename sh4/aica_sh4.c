@@ -1,6 +1,7 @@
 
 #include <kos.h>
 
+#include "../aica_registers.h"
 #include "../aica_syscalls.h"
 #include "../aica_common.h"
 
@@ -222,7 +223,7 @@ void aica_interrupt_init(void)
 void aica_interrupt(void)
 {
 	g2_fifo_wait();
-	g2_write_32(0xa07028a0, 0x20);
+	g2_write_32(AICA_FROM_SH4(REG_ARM_INT_SEND), MAGIC_CODE);
 }
 
 void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
