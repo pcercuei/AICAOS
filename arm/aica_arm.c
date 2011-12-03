@@ -29,6 +29,7 @@ int aica_init(char *fn)
 	aica_interrupt_init();
 	int_enable();
 
+	io_addr[ARM_TO_SH].cparams.sync = 0;
 	__io_init = io_addr;
 
 	/* We will continue when the SH-4 will decide so. */
