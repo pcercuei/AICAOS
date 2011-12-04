@@ -13,6 +13,9 @@ static mutex_t * io_mutex;
 static mutex_t * func_mutex[NB_MAX_FUNCTIONS];
 static volatile char sync[NB_MAX_FUNCTIONS];
 
+static kthread_t * thd;
+static kthread_t * thd_create_idle(void);
+
 /* Params:
  * 		out = function name (char *)
  * 		in = function ID (unsigned int *)
@@ -35,6 +38,7 @@ int aica_init(char *fn)
 {
 	size_t i;
 
+	thd = thd_create_idle();
 	aica_clear_handler_table();
 
 	g2_fifo_wait();
@@ -153,22 +157,35 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 static void * aica_arm_fiq_hdl_thd(void *param)
 {
-	struct call_params *cparams = (struct call_params *) param;
+	struct call_params cparams;
 	struct function_params fparams;
 	unsigned int flag = FUNCTION_CALL_AVAIL;
 
+	/* Create a new idle thread to handle next request */
+	thd = thd_create_idle();
+
+	/* Retrieve the call parameters */
+	aica_download(&cparams, &io_addr_arm[ARM_TO_SH].cparams, sizeof(struct call_params));
+
+	/* The call data has been read, clear the sync flag and acknowledge. */
+	cparams.sync = 0;
+	aica_upload(&io_addr_arm[ARM_TO_SH].cparams, &cparams, sizeof(struct call_params));
+
+	thd_set_prio(thd_get_current(), cparams.prio);
+
+	/* Download information about the function to call */
 	aica_download(&fparams,
-				&io_addr_arm[ARM_TO_SH].fparams[cparams->id],
+				&io_addr_arm[ARM_TO_SH].fparams[cparams.id],
 				sizeof(struct function_params));
 
 	/* Download the input data if any. */
 	if (fparams.in.size > 0)
-		aica_download(fparams.in.ptr, cparams->in, fparams.in.size);
+		aica_download(fparams.in.ptr, cparams.in, fparams.in.size);
 
 	/* Get a handle from the ID. */
-	aica_funcp_t func = aica_get_func_from_id(cparams->id);
+	aica_funcp_t func = aica_get_func_from_id(cparams.id);
 	if (!func) {
-		fprintf(stderr, "No function found for ID %i.\n", cparams->id);
+		fprintf(stderr, "No function found for ID %i.\n", cparams.id);
 		free(param);
 		return NULL;
 	}
@@ -178,16 +195,25 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 
 	/* Upload the output data. */
 	if (fparams.out.size > 0)
-		aica_upload(cparams->out, fparams.out.ptr, fparams.out.size);
-
-	/* Free the call_params structure allocated in aica_arm_fiq_hdl(). */
-	free(param);
+		aica_upload(cparams.out, fparams.out.ptr, fparams.out.size);
 
 	/* Inform the ARM that the call is complete. */
-	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[cparams->id].call_status,
+	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[cparams.id].call_status,
 				&flag, sizeof(unsigned int));
 
 	return NULL;
+}
+
+static kthread_t * thd_create_idle(void)
+{
+	int irq_status = irq_disable();
+
+	kthread_t * thread = thd_create(THD_DEFAULTS, aica_arm_fiq_hdl_thd, NULL);
+	thd_remove_from_runnable(thread);
+	thd_set_prio(thread, 0);
+
+	irq_restore(irq_status);
+	return thread;
 }
 
 static void acknowledge(void)
@@ -198,20 +224,8 @@ static void acknowledge(void)
 
 static void aica_arm_fiq_hdl(uint32_t code)
 {
-	kthread_t *thd;
-	struct call_params *cparams;
-	
-	/* Retrieve the call parameters */
-	cparams = malloc(sizeof(struct call_params));
-	aica_download(cparams, &io_addr_arm[ARM_TO_SH].cparams, sizeof(struct call_params));
-
-	/* The call data has been read, clear the sync flag and acknowledge. */
-	cparams->sync = 0;
-	aica_upload(&io_addr_arm[ARM_TO_SH].cparams, cparams, sizeof(struct call_params));
+	thd_add_to_runnable(thd, 0);
 	acknowledge();
-
-	thd = thd_create(THD_DEFAULTS, aica_arm_fiq_hdl_thd, cparams);
-	thd_set_prio(thd, cparams->prio);
 }
 
 void aica_interrupt_init(void)
