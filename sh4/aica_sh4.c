@@ -20,7 +20,7 @@ static kthread_t * thd_create_idle(void);
  * 		out = function name (char *)
  * 		in = function ID (unsigned int *)
  */
-static SHARED(__get_sh4_func_id)
+static AICA_SHARED(__get_sh4_func_id)
 {
 	return aica_find_id((unsigned int *)out, (char *)in);
 }
@@ -28,7 +28,7 @@ static SHARED(__get_sh4_func_id)
 /* Params:
  * 		in = function ID (unsigned int *)
  */
-static SHARED(__arm_call_finished)
+static AICA_SHARED(__arm_call_finished)
 {
 	sync[*(unsigned int *)in] = 1;
 	return 0;

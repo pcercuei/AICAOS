@@ -9,7 +9,7 @@
 extern struct io_channel *__io_init;
 static struct io_channel *io_addr;
 
-static SHARED(get_arm_func_id)
+static AICA_SHARED(get_arm_func_id)
 {
 	return aica_find_id((unsigned int *)out, (char *)in);
 }

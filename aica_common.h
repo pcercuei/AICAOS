@@ -135,7 +135,7 @@ void aica_exit(void);
 #define AICA_SHARE(func, sz_in, sz_out) \
   __aica_share(func, #func, sz_in, sz_out)
 
-#define SHARED(func) \
+#define AICA_SHARED(func) \
   int func(void *out, void *in)
 
 #define AICA_ADD_REMOTE(func, prio) \

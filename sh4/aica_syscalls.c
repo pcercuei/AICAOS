@@ -4,7 +4,7 @@
 
 #include "../aica_syscalls.h"
 
-static SHARED(sh4_open)
+static AICA_SHARED(sh4_open)
 {
 	int *result = (int *) out;
 	char *fn;
@@ -18,7 +18,7 @@ static SHARED(sh4_open)
 	return 0;
 }
 
-static SHARED(sh4_close)
+static AICA_SHARED(sh4_close)
 {
 	int *result = (int *) out;
 	int *file = (int *) in;
@@ -27,7 +27,7 @@ static SHARED(sh4_close)
 	return 0;
 }
 
-static SHARED(sh4_fstat)
+static AICA_SHARED(sh4_fstat)
 {
 	int *result = (int *) out;
 	struct stat st;
@@ -38,7 +38,7 @@ static SHARED(sh4_fstat)
 	return 0;
 }
 
-static SHARED(sh4_stat)
+static AICA_SHARED(sh4_stat)
 {
 	int *result = (int *) out;
 	struct stat st;
@@ -54,7 +54,7 @@ static SHARED(sh4_stat)
 	return 0;
 }
 
-static SHARED(sh4_isatty)
+static AICA_SHARED(sh4_isatty)
 {
 	int *result = (int *) out;
 	int *file = (int *) in;
@@ -63,7 +63,7 @@ static SHARED(sh4_isatty)
 	return 0;
 }
 
-static SHARED(sh4_link)
+static AICA_SHARED(sh4_link)
 {
 	int *result = (int *) out;
 	struct link_param *p = (struct link_param *) in;
@@ -80,7 +80,7 @@ static SHARED(sh4_link)
 	return 0;
 }
 
-static SHARED(sh4_lseek)
+static AICA_SHARED(sh4_lseek)
 {
 	off_t *result = (off_t *) out;
 	struct lseek_param *p = (struct lseek_param *) in;
@@ -90,7 +90,7 @@ static SHARED(sh4_lseek)
 }
 
 /* TODO: optimize... */
-static SHARED(sh4_read)
+static AICA_SHARED(sh4_read)
 {
 	_READ_WRITE_RETURN_TYPE *result = (_READ_WRITE_RETURN_TYPE *) out;
 	struct read_param *p = (struct read_param *) in;
@@ -103,7 +103,7 @@ static SHARED(sh4_read)
 }
 
 /* TODO: optimize... */
-static SHARED(sh4_write)
+static AICA_SHARED(sh4_write)
 {
 	_READ_WRITE_RETURN_TYPE *result = (_READ_WRITE_RETURN_TYPE *) out;
 	struct write_param *p = (struct write_param *) in;

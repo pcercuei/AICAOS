@@ -10,7 +10,7 @@ KOS_INIT_FLAGS(INIT_DEFAULT | INIT_MALLOCSTATS);
 KOS_INIT_ROMDISK(romdisk);
 
 /* Wrapper to the real function. */
-static SHARED(sh4_puts)
+static AICA_SHARED(sh4_puts)
 {
 	return puts((char *)in);
 }
