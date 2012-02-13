@@ -14,7 +14,7 @@ $(SPUTARGET): $(ELFTARGET)
 	$(DC_ARM_OBJCOPY) -O binary $(ELFTARGET) $(SPUTARGET)
 
 $(ELFTARGET): $(OBJS) $(CRT0)
-	$(DC_ARM_CC) -Wl,-Tscript.ld -nostartfiles -nostdlib -o $(ELFTARGET) $(OBJS) -lc
+	$(DC_ARM_CC) -Wl,-Tscript.ld -nostartfiles -nostdlib -o $(ELFTARGET) $(OBJS) -lc -lgcc
 
 aica_common.o: ../aica_common.c
 	$(DC_ARM_CC) $(MY_CFLAGS) -I.. $(DC_ARM_INCS) $< -c -o $@

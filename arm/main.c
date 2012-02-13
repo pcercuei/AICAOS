@@ -1,4 +1,5 @@
 
+#include <stdio.h>
 #include <stdint.h>
 
 #include "../aica_common.h"
@@ -10,7 +11,8 @@ int main(int argc, char **argv)
 {
 	aica_init(NULL);
 
-	while (sh4_puts(NULL, "Hello World!") == -EAGAIN);
+	printf("Hello\n");
+	sh4_puts(NULL, "world!");
 
 	aica_exit();
 	return 0;
