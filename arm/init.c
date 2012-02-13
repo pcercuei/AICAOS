@@ -1,21 +1,34 @@
 
 #include <stdint.h>
 
+#include "crt0.h"
 #include "../aica_registers.h"
 
 /* When F bit (resp. I bit) is set, FIQ (resp. IRQ) is disabled. */
 #define F_BIT 0x40
 #define I_BIT 0x80
 
-void int_toggle(int enable)
+void int_restore(uint32_t context)
 {
-	register uint32_t tmp;
-	asm volatile("mrs %0,CPSR" : "=r"(tmp) :);
-	if (enable)
-		tmp &= ~(I_BIT | F_BIT);
-	else
-		tmp |= (I_BIT | F_BIT);
-	asm volatile("msr CPSR_all,%0" : : "r"(tmp));
+	asm volatile("msr CPSR_all,%0" : : "r"(context));
+}
+
+uint32_t int_disable(void)
+{
+	register uint32_t cpsr;
+	asm volatile("mrs %0,CPSR" : "=r"(cpsr) :);
+
+	int_restore(cpsr | I_BIT | F_BIT);
+	return cpsr;
+}
+
+uint32_t int_enable(void)
+{
+	register uint32_t cpsr;
+	asm volatile("mrs %0,CPSR" : "=r"(cpsr) :);
+
+	int_restore(cpsr & ~(I_BIT | F_BIT));
+	return cpsr;
 }
 
 void aica_sh4_fiq_hdl(void)

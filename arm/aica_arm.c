@@ -48,6 +48,8 @@ void aica_exit(void)
 
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
+	uint32_t int_context;
+
 	/* Wait here if a previous call is pending. */
 	while((*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync)
 				|| (*(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status == FUNCTION_CALL_PENDING))
@@ -56,7 +58,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	}
 
 	/* Protect from context changes. */
-	int_disable();
+	int_context = int_disable();
 
 	io_addr[ARM_TO_SH].cparams.id = id;
 	io_addr[ARM_TO_SH].cparams.prio = prio;
@@ -66,7 +68,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
 
 	aica_interrupt();
-	int_enable();
+	int_restore(int_context);
 
 	/* If there is data to be sent back, we will wait until the call completes.
 	 * /!\: The call will return immediately even if the remote function has yet to be
