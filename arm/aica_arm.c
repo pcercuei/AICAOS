@@ -4,7 +4,7 @@
 
 #include "../aica_registers.h"
 #include "../aica_common.h"
-#include "crt0.h"
+#include "init.h"
 
 extern struct io_channel *__io_init;
 static struct io_channel *io_addr;

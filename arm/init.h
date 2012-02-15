@@ -1,5 +1,5 @@
-#ifndef _CRT0_S
-#define _CRT0_S
+#ifndef _INIT_H
+#define _INIT_H
 
 #include <stdint.h>
 
