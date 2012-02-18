@@ -22,7 +22,7 @@ aica_common.o: ../aica_common.c
 %.o: %.c
 	$(DC_ARM_CC) $(MY_CFLAGS) -I. $(DC_ARM_INCS) $< -c -o $@
 
-%.o: %.s
+%.o: %.S
 	$(DC_ARM_CC) $(MY_CFLAGS) -I. $(DC_ARM_INCS) $< -c -o $@
 
 clean:
