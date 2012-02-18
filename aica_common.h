@@ -12,6 +12,8 @@
 
 #define FUNCNAME_MAX_LENGTH 0x20
 
+#define PRIORITY_MAX 15
+
 /* Default priority for a function call */
 #define PRIORITY_DEFAULT 10
 
