@@ -146,9 +146,58 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 }
 
 
+static void task_birth(aica_funcp_t func, void *out, void *in, int *flag)
+{
+	func(out, in);
+	*flag = 0;
+	task_exit();
+}
+
+
+static struct task * create_handler(aica_funcp_t func, void *out, void *in, int *flag)
+{
+	struct context cxt = {
+		.r0_r7 = {
+			(uint32_t) func,
+			(uint32_t) out,
+			(uint32_t) in,
+			(uint32_t) flag,
+			0, 0, 0, 0,
+		},
+		.pc = (aica_funcp_t) task_birth,
+		.cpsr = 0x13, /* supervisor */
+	};
+
+	return task_create(&cxt);
+}
+
+
 /* Called from crt0.S */
 void __attribute__((interrupt ("FIQ"))) sh4_fiq_hdl(void)
 {
+	struct call_params cparams;
+	struct task *task;
+	aica_funcp_t func;
+
+	/* Switch back to newlib's reent structure */
+	_impure_ptr = _global_impure_ptr;
+
+	/* Retrieve the call parameters */
+	memcpy(&cparams, &io_addr[SH_TO_ARM].cparams, sizeof(struct call_params));
+
+	/* The call data has been read, clear the sync flag and acknowledge */
+	io_addr[SH_TO_ARM].cparams.sync = 0;
 	acknowledge();
+
+	func = aica_get_func_from_id(cparams.id);
+	if (!func) {
+		fprintf(stderr, "No function found for ID %i.\n", cparams.id);
+		return;
+	}
+
+	task = create_handler(func, cparams.out, cparams.in,
+				&io_addr[SH_TO_ARM].fparams[cparams.id].call_status);
+	task_add_to_runnable(task, cparams.prio);
+	task_select(task);
 }
 
