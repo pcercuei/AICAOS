@@ -6,6 +6,7 @@
 .extern sh4_fiq_hdl
 .extern bus_fiq_hdl
 .extern timer_fiq_hdl
+.extern current_task
 
 #include "../aica_registers.h"
 
@@ -28,8 +29,36 @@ reset:
 
 	mov r9,#SH4_INTERRUPT_INT_CODE
 	cmp r8,r9
+	bne other_fiq
+
+	# Save r0-r7 and r14 (old PC) inside the thread structure
+	ldr r8, =current_task
+	ldr r8, [r8]
+	stmia r8, {r0-r7,r14}
+
+	# Switch to Supervisor mode
+	mrs r9, CPSR
+	orr r9, r9, #0x13
+	msr CPSR_c, r9
+	nop
+	nop
+	nop
+	nop
+
+	# Save r8-r14 and the CPSR
+	ldr r0, =current_task
+	ldr r0, [r0]
+	add r0, r0, #36
+	stmia r0!, {r8-r14}
+	mrs r0, CPSR
+
+	# Use the FIQ stack for the moment
+	ldr sp,=__fiq_stack
+
+	# Jump to the C handler
 	b sh4_fiq_hdl
 
+other_fiq:
 	mov r9,#TIMER_INTERRUPT_INT_CODE
 	cmp r8,r9
 	beq timer_fiq_hdl
