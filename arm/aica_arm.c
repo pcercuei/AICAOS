@@ -145,3 +145,10 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 	memcpy(&io_addr[SH_TO_ARM].fparams[id], fparams, sizeof(struct function_params));
 }
 
+
+/* Called from crt0.S */
+void __attribute__((interrupt ("FIQ"))) sh4_fiq_hdl(void)
+{
+	acknowledge();
+}
+

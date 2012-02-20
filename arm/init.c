@@ -32,18 +32,11 @@ uint32_t int_enable(void)
 }
 
 
-static void acknowledge(void)
+void acknowledge(void)
 {
 	unsigned int i;
 	for (i = 0; i < 4; i++)
 		*(unsigned int *) REG_ARM_FIQ_ACK = 1;
-}
-
-
-/* Called from crt0.S */
-void __attribute__((interrupt ("FIQ"))) sh4_fiq_hdl(void)
-{
-	acknowledge();
 }
 
 
