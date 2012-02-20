@@ -9,10 +9,6 @@
 static struct io_channel *io_addr_arm;
 static unsigned int __io_init = 0xa09ffffc;
 
-static mutex_t * io_mutex;
-static mutex_t * func_mutex[NB_MAX_FUNCTIONS];
-static volatile char sync[NB_MAX_FUNCTIONS];
-
 static kthread_t * thd;
 static kthread_t * thd_create_idle(void);
 
@@ -25,31 +21,13 @@ static AICA_SHARED(__get_sh4_func_id)
 	return aica_find_id((unsigned int *)out, (char *)in);
 }
 
-/* Params:
- * 		in = function ID (unsigned int *)
- */
-static AICA_SHARED(__arm_call_finished)
-{
-	sync[*(unsigned int *)in] = 1;
-	return 0;
-}
-
 int aica_init(char *fn)
 {
-	size_t i;
-
 	thd = thd_create_idle();
 	aica_clear_handler_table();
 
 	g2_fifo_wait();
 	g2_write_32(__io_init, 0);
-
-	/* Initialize the mutexes. */
-	io_mutex = mutex_create();
-	for (i=0; i<NB_MAX_FUNCTIONS; i++) {
-		func_mutex[i] = mutex_create();
-		sync[i] = 0;
-	}
 
 	/* TODO: It would be faster to use mmap here, if the driver lies on the romdisk. */
 	file_t file = fs_open(fn, O_RDONLY);
@@ -86,8 +64,6 @@ int aica_init(char *fn)
 	 * from the names of the functions to call. */
 	AICA_SHARE(__get_sh4_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
 
-	AICA_SHARE(__arm_call_finished, 0, 0);
-
 	aica_init_syscalls();
 	//	spu_dma_init();
 	aica_interrupt_init();
@@ -112,24 +88,29 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	struct function_params fparams;
 	struct call_params cparams;
 
-	/* We don't want two calls to the same function
-	 * to occur at the same time. */
-	mutex_lock(func_mutex[id]);
+	do {
+		/* We retrieve the parameters of the function we want to execute */
+		aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
 
-	/* We retrieve the parameters of the function we want to execute */
-	aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
+		/* We don't want two calls to the same function
+		 * to occur at the same time. */
+		if (fparams.call_status == FUNCTION_CALL_AVAIL)
+			break;
+		thd_pass();
+	} while(1);
+
+	fparams.call_status = FUNCTION_CALL_PENDING;
+	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(struct function_params));
 
 	/* We will start transfering the input buffer. */
 	if (fparams.in.size > 0)
 	  aica_upload(fparams.in.ptr, in, fparams.in.size);
 
 	/* Wait until a new call can be made. */
-	mutex_lock(io_mutex);
-
 	while (1) {
 		aica_download(&cparams.sync, &io_addr_arm[SH_TO_ARM].cparams.sync, sizeof(cparams.sync));
-		if (!cparams.sync) break;
-
+		if (!cparams.sync)
+			break;
 		thd_pass();
 	}
 
@@ -141,17 +122,20 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	cparams.sync = 1;
 	aica_upload(&io_addr_arm[SH_TO_ARM].cparams, &cparams, sizeof(cparams));
 	aica_interrupt();
-	mutex_unlock(io_mutex);
 
 	/* If the function outputs something, we wait
 	 * until the call completes to transfer the data. */
 	if (fparams.out.size > 0) {
-		while (!sync[id]) thd_pass();
-		sync[id] = 0;
+		while (1) {
+			aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
+			if (fparams.call_status == FUNCTION_CALL_AVAIL)
+				break;
+			thd_pass();
+		}
+
 		aica_download(out, fparams.out.ptr, fparams.out.size);
 	}
 
-	mutex_unlock(func_mutex[id]);
 	return 0;
 }
 
