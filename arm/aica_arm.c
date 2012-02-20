@@ -173,7 +173,7 @@ static struct task * create_handler(aica_funcp_t func, void *out, void *in, int 
 
 
 /* Called from crt0.S */
-void sh4_fiq_hdl(void)
+void aica_sh4_fiq_hdl(void)
 {
 	struct call_params cparams;
 	struct task *task;

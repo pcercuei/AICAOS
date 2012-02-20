@@ -3,7 +3,7 @@
 .align
 
 .extern aica_init
-.extern sh4_fiq_hdl
+.extern aica_sh4_fiq_hdl
 .extern bus_fiq_hdl
 .extern timer_fiq_hdl
 .extern current_task
@@ -56,7 +56,7 @@ reset:
 	ldr sp,=__fiq_stack
 
 	# Jump to the C handler
-	b sh4_fiq_hdl
+	b aica_sh4_fiq_hdl
 
 other_fiq:
 	mov r9,#TIMER_INTERRUPT_INT_CODE
