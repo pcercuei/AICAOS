@@ -9,6 +9,7 @@ arm/$(SPUTARGET):
 	make -C arm $(SPUTARGET)
 
 arm-install: arm
+	-mkdir romdisk
 	cp arm/$(SPUTARGET) romdisk/$(SPUTARGET)
 
 arm-clean:
@@ -26,5 +27,6 @@ $(TARGET): sh4
 	cp sh4/$(TARGET) $(TARGET)
 
 clean: arm-clean sh4-clean
+	-rmdir romdisk
 	-rm -f $(TARGET)
 
