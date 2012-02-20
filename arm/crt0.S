@@ -3,7 +3,11 @@
 .align
 
 .extern main
-.extern fiq_hdl
+.extern sh4_fiq_hdl
+.extern bus_fiq_hdl
+.extern timer_fiq_hdl
+
+#include "../aica_registers.h"
 
 .globl reset
 reset:
@@ -15,7 +19,24 @@ reset:
 	b data_abort
 	b rsrvd
 	b irq_hdl
-	b fiq_hdl
+
+	# FIQ handling: load the FIQ code, and jump to
+	# the corresponding function.
+	ldr r8, reg_arm_fiq_code
+	ldr r8, [r8]
+	and r8, r8, #7
+
+	mov r9,#SH4_INTERRUPT_INT_CODE
+	cmp r8,r9
+	b sh4_fiq_hdl
+
+	mov r9,#TIMER_INTERRUPT_INT_CODE
+	cmp r8,r9
+	beq timer_fiq_hdl
+
+	mov r9,#BUS_REQUEST_INT_CODE
+	cmp r8,r9
+	beq bus_fiq_hdl
 
 undef:
 softint:
@@ -70,6 +91,9 @@ start:
 program_end:
 	# Loop infinitely when we get here
 	b program_end
+
+reg_arm_fiq_code:
+	.word REG_ARM_FIQ_CODE
 
 .end
 
