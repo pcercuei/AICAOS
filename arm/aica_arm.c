@@ -5,7 +5,7 @@
 
 #include "../aica_registers.h"
 #include "../aica_common.h"
-#include "init.h"
+#include "interrupt.h"
 #include "task.h"
 
 extern struct io_channel *__io_init;

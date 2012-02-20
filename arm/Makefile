@@ -5,7 +5,7 @@ ELFTARGET=aicaos.elf
 
 MY_CFLAGS = $(DC_ARM_CFLAGS) -fomit-frame-pointer
 
-OBJS = aica_syscalls.o aica_arm.o main.o aica_common.o init.o task.o task_asm.o
+OBJS = aica_syscalls.o aica_arm.o main.o aica_common.o interrupt.o task.o task_asm.o
 CRT0 = crt0.o
 
 all: clean $(SPUTARGET)

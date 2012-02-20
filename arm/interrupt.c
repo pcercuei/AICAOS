@@ -1,7 +1,7 @@
 
 #include <stdint.h>
 
-#include "init.h"
+#include "interrupt.h"
 #include "../aica_registers.h"
 
 /* When F bit (resp. I bit) is set, FIQ (resp. IRQ) is disabled. */
