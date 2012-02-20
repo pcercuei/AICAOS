@@ -1,10 +1,12 @@
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../aica_registers.h"
 #include "../aica_common.h"
 #include "init.h"
+#include "task.h"
 
 extern struct io_channel *__io_init;
 static struct io_channel *io_addr;
@@ -14,8 +16,33 @@ static AICA_SHARED(get_arm_func_id)
 	return aica_find_id((unsigned int *)out, (char *)in);
 }
 
+static void __main(void)
+{
+	extern int main(int, char**) __attribute__((weak));
+
+	if (main) {
+		int err = main(0, 0);
+		printf("ARM main terminated with status %i\n", err);
+	}
+
+	while(1)
+		task_reschedule();
+}
+
+static struct task * task_create_main(void)
+{
+	struct context cxt = {
+		.pc = (aica_funcp_t) __main,
+		.cpsr = 0x13, /* supervisor */
+	};
+
+	return task_create(&cxt);
+}
+
 int aica_init(char *fn)
 {
+	struct task *main_task;
+
 	/* Discard GCC warnings about unused parameter */
 	(void)fn;
 
@@ -36,7 +63,16 @@ int aica_init(char *fn)
 	/* We will continue when the SH-4 will decide so. */
 	while (*(volatile int *) &__io_init != 0);
 
-	return 0;
+	/* Create the main thread, that should start right after aica_init(). */
+	main_task = task_create_main();
+	if (!main_task)
+		printf("Unable to create main task.\n");
+
+	task_add_to_runnable(main_task, PRIORITY_MAX);
+	task_select(main_task);
+
+	/* Never reached */
+	return -1;
 }
 
 void aica_exit(void)

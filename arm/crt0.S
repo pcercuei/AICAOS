@@ -2,7 +2,7 @@
 .text
 .align
 
-.extern main
+.extern aica_init
 .extern sh4_fiq_hdl
 .extern bus_fiq_hdl
 .extern timer_fiq_hdl
@@ -113,9 +113,9 @@ start:
 		cmp r0,r1
 		bhi clear_bss_loop
 
-	# Call the C "main" function
+	# Call the C "aica_init" function
 	mov r0,#0
-	bl main
+	bl aica_init
 
 program_end:
 	# Loop infinitely when we get here
