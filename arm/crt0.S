@@ -45,6 +45,11 @@ reset:
 	ldr r8, [r8]
 	stmia r8, {r0-r7,r14}
 
+	# Reset the interrupt raised by the SH-4
+	ldr r11, reg_arm_int_reset
+	mov r12, #MAGIC_CODE
+	str r12, [r11]
+
 	# Switch to Supervisor mode
 	mrs r9, CPSR
 	orr r9, r9, #0x13
@@ -134,6 +139,8 @@ reg_arm_fiq_code:
 	.word REG_ARM_FIQ_CODE
 reg_arm_fiq_ack:
 	.word REG_ARM_FIQ_ACK
+reg_arm_int_reset:
+	.word REG_ARM_INT_RESET
 
 .end
 
