@@ -176,6 +176,7 @@ static struct task * create_handler(aica_funcp_t func, void *out, void *in, int 
 void aica_sh4_fiq_hdl(void)
 {
 	struct call_params cparams;
+	struct function_params *fparams;
 	struct task *task;
 	aica_funcp_t func;
 
@@ -194,8 +195,12 @@ void aica_sh4_fiq_hdl(void)
 		return;
 	}
 
-	task = create_handler(func, cparams.out, cparams.in,
-				&io_addr[SH_TO_ARM].fparams[cparams.id].call_status);
+	fparams = &io_addr[SH_TO_ARM].fparams[cparams.id];
+	task = create_handler(func,
+				fparams->out.ptr,
+				fparams->in.ptr,
+				&fparams->call_status);
+
 	task_add_to_runnable(task, cparams.prio);
 	task_select(task);
 }
