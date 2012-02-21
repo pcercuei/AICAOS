@@ -52,18 +52,12 @@ void * _sbrk_r(struct _reent *r, ptrdiff_t incr)
 {
 	extern char _end;		/* Defined by the linker */
 	char *prev_heap_end;
-	register char * stack_ptr asm ("sp");
 
-	if (heap_end == 0) {
+	if (heap_end == 0)
 		heap_end = &_end;
-	}
 	prev_heap_end = heap_end;
-	if (heap_end + incr > stack_ptr) {
-		_write_r (r, 1, "Heap and stack collision\n", 25);
-		abort();
-	}
-
 	heap_end += incr;
+
 	return prev_heap_end;
 }
 
