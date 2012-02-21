@@ -187,7 +187,6 @@ void aica_sh4_fiq_hdl(void)
 
 	/* The call data has been read, clear the sync flag and acknowledge */
 	io_addr[SH_TO_ARM].cparams.sync = 0;
-	acknowledge();
 
 	func = aica_get_func_from_id(cparams.id);
 	if (!func) {

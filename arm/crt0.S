@@ -21,7 +21,16 @@ reset:
 	b rsrvd
 	b irq_hdl
 
-	# FIQ handling: load the FIQ code, and jump to
+	# FIQ handling: acknowledge the interrupt so
+	# that it won't reappear once in Supervisor mode
+	ldr r11, reg_arm_fiq_ack
+	mov r12, #1
+	str r12, [r11]
+	str r12, [r11]
+	str r12, [r11]
+	str r12, [r11]
+
+	# Load the FIQ code, and jump to
 	# the corresponding function.
 	ldr r8, reg_arm_fiq_code
 	ldr r8, [r8]
@@ -123,6 +132,8 @@ program_end:
 
 reg_arm_fiq_code:
 	.word REG_ARM_FIQ_CODE
+reg_arm_fiq_ack:
+	.word REG_ARM_FIQ_ACK
 
 .end
 
