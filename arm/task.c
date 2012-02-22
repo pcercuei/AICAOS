@@ -35,10 +35,10 @@ void __task_reschedule()
 	struct TaskHandler *hdl;
 
 	for (i = 0; i <= PRIORITY_MAX; i++) {
-		hdl = SLIST_FIRST(&tasks[i]);
-		if (!hdl || hdl->task == current_task)
-			continue;
-		task_select(hdl->task);
+		SLIST_FOREACH(hdl, &tasks[i], next) {
+			if (hdl->task != current_task)
+				task_select(hdl->task);
+		}
 	}
 
 	task_select(current_task);
