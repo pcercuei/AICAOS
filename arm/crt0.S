@@ -50,6 +50,9 @@ reset:
 	mov r12, #MAGIC_CODE
 	str r12, [r11]
 
+	# Save the banked CPSR for later
+	mrs r1, SPSR
+
 	# Switch to Supervisor mode
 	mrs r9, CPSR
 	orr r9, r9, #0x13
@@ -64,7 +67,6 @@ reset:
 	ldr r0, [r0]
 	add r0, r0, #36
 	stmia r0!, {r8-r14}
-	mrs r1, CPSR
 	str r1, [r0]
 
 	# Use the FIQ stack for the moment
