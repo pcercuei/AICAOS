@@ -7,6 +7,7 @@
 
 #include "../aica_common.h"
 #include "task.h"
+#include "interrupt.h"
 
 struct task *current_task;
 static unsigned int id = 0;
@@ -23,6 +24,7 @@ void task_select(struct task *task)
 	/* Inside task_arm.S */
 	void __task_select(struct context *context);
 
+	int_disable();
 	current_task = task;
 	_impure_ptr = &task->reent;
 	__task_select(&task->context);
@@ -34,6 +36,7 @@ void __task_reschedule()
 	uint32_t i;
 	struct TaskHandler *hdl;
 
+	int_disable();
 	for (i = 0; i <= PRIORITY_MAX; i++) {
 		SLIST_FOREACH(hdl, &tasks[i], next) {
 			if (hdl->task != current_task)
@@ -49,6 +52,7 @@ void task_exit(void)
 	struct TaskHandler *hdl;
 	unsigned int i;
 
+	int_disable();
 	for (i = 0; i <= PRIORITY_MAX; i++) {
 		SLIST_FOREACH(hdl, &tasks[i], next) {
 			if (hdl->task == current_task) {
@@ -89,6 +93,7 @@ struct task * task_create(struct context *cxt)
 
 void task_add_to_runnable(struct task *task, unsigned char prio)
 {
+	uint32_t cxt = int_disable();
 	struct TaskHandler *old = NULL,
 					   *new = malloc(sizeof(struct TaskHandler)),
 					   *hdl = SLIST_FIRST(&tasks[prio]);
@@ -101,5 +106,6 @@ void task_add_to_runnable(struct task *task, unsigned char prio)
 		SLIST_INSERT_AFTER(old, new, next);
 	else
 		SLIST_INSERT_HEAD(&tasks[prio], new, next);
+	int_restore(cxt);
 }
 
