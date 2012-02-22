@@ -25,7 +25,6 @@ __task_select:
 
 	# Restore the CPSR
 	ldr r8, [r0, #64]
-	orr r8, r8, #0x13
 	msr SPSR, r8
 
 	# Restore r0-r7 and r15
