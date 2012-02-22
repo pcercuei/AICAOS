@@ -21,7 +21,7 @@ static SLIST_HEAD(Head, TaskHandler) tasks [PRIORITY_MAX+1];
 
 void task_select(struct task *task)
 {
-	/* Inside task_arm.S */
+	/* Inside task_asm.S */
 	void __task_select(struct context *context);
 
 	int_disable();
@@ -30,7 +30,7 @@ void task_select(struct task *task)
 	__task_select(&task->context);
 }
 
-/* Called from task_arm.S */
+/* Called from task_asm.S */
 void __task_reschedule()
 {
 	uint32_t i;
