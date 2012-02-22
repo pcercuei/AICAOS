@@ -64,7 +64,8 @@ reset:
 	ldr r0, [r0]
 	add r0, r0, #36
 	stmia r0!, {r8-r14}
-	mrs r0, CPSR
+	mrs r1, CPSR
+	str r1, [r0]
 
 	# Use the FIQ stack for the moment
 	ldr sp,=__fiq_stack
