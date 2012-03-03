@@ -31,6 +31,12 @@ uint32_t int_enable(void)
 	return cpsr;
 }
 
+int int_enabled(void)
+{
+	register uint32_t cpsr;
+	asm volatile("mrs %0,CPSR" : "=r"(cpsr) :);
+	return !(cpsr & (I_BIT | F_BIT));
+}
 
 /* Called from crt0.S */
 void __attribute__((interrupt ("FIQ"))) bus_fiq_hdl(void)

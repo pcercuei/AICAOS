@@ -8,6 +8,7 @@ void reset(void);
 uint32_t int_enable(void);
 uint32_t int_disable(void);
 void int_restore(uint32_t context);
+int int_enabled(void);
 
 void acknowledge();
 
