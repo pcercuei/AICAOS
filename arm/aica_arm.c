@@ -192,7 +192,7 @@ void aica_sh4_fiq_hdl(void)
 	func = aica_get_func_from_id(cparams.id);
 	if (!func) {
 		fprintf(stderr, "No function found for ID %i.\n", cparams.id);
-		return;
+		__task_reschedule();
 	}
 
 	fparams = &io_addr[SH_TO_ARM].fparams[cparams.id];

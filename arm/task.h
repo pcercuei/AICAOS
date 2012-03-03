@@ -43,6 +43,11 @@ void task_select(struct task *task);
  * Located in task_asm.S */
 void task_reschedule(void);
 
+/* Switch to another task.
+ * Called from task_asm.S
+ * XXX: Does not save the current task's context! */
+void __task_reschedule(void);
+
 /* Exit the currently running task */
 void task_exit(void);
 
