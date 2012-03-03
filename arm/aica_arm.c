@@ -55,7 +55,6 @@ int aica_init(char *fn)
 	AICA_SHARE(get_arm_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
 
 	aica_interrupt_init();
-	int_enable();
 	__io_init = io_addr;
 
 	/* We will continue when the SH-4 will decide so. */
