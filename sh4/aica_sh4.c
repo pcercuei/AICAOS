@@ -118,23 +118,20 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	 * That function will return immediately, even if the remote function has yet to be executed. */
 	cparams.id = id;
 	cparams.prio = prio;
-	cparams.wait =  fparams.out.size;
 	cparams.sync = 1;
 	aica_upload(&io_addr_arm[SH_TO_ARM].cparams, &cparams, sizeof(cparams));
 	aica_interrupt();
 
-	/* If the function outputs something, we wait
-	 * until the call completes to transfer the data. */
-	if (fparams.out.size > 0) {
-		while (1) {
-			aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
-			if (fparams.call_status == FUNCTION_CALL_AVAIL)
-				break;
-			thd_pass();
-		}
-
-		aica_download(out, fparams.out.ptr, fparams.out.size);
+	/* Wait until the call completes to transfer the data. */
+	while (1) {
+		aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
+		if (fparams.call_status == FUNCTION_CALL_AVAIL)
+			break;
+		thd_pass();
 	}
+
+	if (fparams.out.size > 0)
+		aica_download(out, fparams.out.ptr, fparams.out.size);
 
 	return 0;
 }

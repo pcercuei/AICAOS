@@ -57,10 +57,6 @@ struct call_params
 	/* Priority of the call */
 	unsigned short prio;
 
-	/* 0 = Do not wait for the function to complete
-	 * (assume there's no output buffer too) */
-	unsigned char wait;
-
 	/* Flag value: set when the io_channel is
 	 * free again. */
 	unsigned char sync;
