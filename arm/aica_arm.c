@@ -146,7 +146,7 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 static void task_birth(aica_funcp_t func, struct function_params *fparams)
 {
 	func(fparams->out.ptr, fparams->in.ptr);
-	fparams->call_status = 0;
+	fparams->call_status = FUNCTION_CALL_AVAIL;
 	task_exit();
 }
 
