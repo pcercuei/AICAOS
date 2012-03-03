@@ -143,23 +143,21 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 }
 
 
-static void task_birth(aica_funcp_t func, void *out, void *in, int *flag)
+static void task_birth(aica_funcp_t func, struct function_params *fparams)
 {
-	func(out, in);
-	*flag = 0;
+	func(fparams->out.ptr, fparams->in.ptr);
+	fparams->call_status = 0;
 	task_exit();
 }
 
 
-static struct task * create_handler(aica_funcp_t func, void *out, void *in, int *flag)
+static struct task * create_handler(aica_funcp_t func, struct function_params *fparams)
 {
 	struct context cxt = {
 		.r0_r7 = {
 			(uint32_t) func,
-			(uint32_t) out,
-			(uint32_t) in,
-			(uint32_t) flag,
-			0, 0, 0, 0,
+			(uint32_t) fparams,
+			0, 0, 0, 0, 0, 0,
 		},
 		.pc = (aica_funcp_t) task_birth,
 		.cpsr = 0x13, /* supervisor */
@@ -173,7 +171,6 @@ static struct task * create_handler(aica_funcp_t func, void *out, void *in, int 
 void aica_sh4_fiq_hdl(void)
 {
 	struct call_params cparams;
-	struct function_params *fparams;
 	struct task *task;
 	aica_funcp_t func;
 
@@ -192,11 +189,8 @@ void aica_sh4_fiq_hdl(void)
 		__task_reschedule();
 	}
 
-	fparams = &io_addr[SH_TO_ARM].fparams[cparams.id];
 	task = create_handler(func,
-				fparams->out.ptr,
-				fparams->in.ptr,
-				&fparams->call_status);
+				&io_addr[SH_TO_ARM].fparams[cparams.id]);
 
 	task_add_to_runnable(task, cparams.prio);
 	task_select(task);
