@@ -87,6 +87,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
 	struct function_params fparams;
 	struct call_params cparams;
+	int return_value;
 
 	do {
 		/* We retrieve the parameters of the function we want to execute */
@@ -132,18 +133,18 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 	if (fparams.out.size > 0)
 		aica_download(out, fparams.out.ptr, fparams.out.size);
+	return_value = fparams.return_value;
 
 	/* Mark the function as available */
 	fparams.call_status = FUNCTION_CALL_AVAIL;
 	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(struct function_params));
-	return 0;
+	return return_value;
 }
 
 static void * aica_arm_fiq_hdl_thd(void *param)
 {
 	struct call_params cparams;
 	struct function_params fparams;
-	unsigned int flag = FUNCTION_CALL_DONE;
 
 	/* Create a new idle thread to handle next request */
 	thd = thd_create_idle();
@@ -175,15 +176,16 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 	}
 
 	/* Call the function. */
-	(*func)(fparams.out.ptr, fparams.in.ptr);
+	fparams.return_value = (*func)(fparams.out.ptr, fparams.in.ptr);
 
 	/* Upload the output data. */
 	if (fparams.out.size > 0)
 		aica_upload(cparams.out, fparams.out.ptr, fparams.out.size);
 
 	/* Inform the ARM that the call is complete. */
-	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[cparams.id].call_status,
-				&flag, sizeof(unsigned int));
+	fparams.call_status = FUNCTION_CALL_DONE;
+	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[cparams.id],
+				&fparams, sizeof(struct function_params));
 
 	return NULL;
 }

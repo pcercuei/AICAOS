@@ -46,6 +46,9 @@ struct function_params
 	/* Indicates whether the previous call of that function
 	 * is still pending or has been completed. */
 	int call_status;
+
+	/* Integer value returned by the function */
+	int return_value;
 };
 
 /* Contains the parameters relative to one
