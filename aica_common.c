@@ -80,7 +80,7 @@ int aica_find_id(unsigned int *id, char *funcname)
 		}
 	}
 
-	return -1;
+	return -EAGAIN;
 }
 
 aica_funcp_t aica_get_func_from_id(unsigned int id)
