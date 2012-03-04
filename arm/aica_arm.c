@@ -104,10 +104,12 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	int_restore(int_context);
 
 	/* We will wait until the call completes. */
-	while( *(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_AVAIL) {
+	while( *(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_DONE) {
 		/* TODO: yield the thread */
 	}
 
+	/* Mark the function as available */
+	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_AVAIL;
 	return 0;
 }
 
@@ -142,7 +144,7 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 static void task_birth(aica_funcp_t func, struct function_params *fparams)
 {
 	func(fparams->out.ptr, fparams->in.ptr);
-	fparams->call_status = FUNCTION_CALL_AVAIL;
+	fparams->call_status = FUNCTION_CALL_DONE;
 	task_exit();
 }
 

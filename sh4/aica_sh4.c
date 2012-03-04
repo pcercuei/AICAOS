@@ -125,7 +125,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	/* Wait until the call completes to transfer the data. */
 	while (1) {
 		aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
-		if (fparams.call_status == FUNCTION_CALL_AVAIL)
+		if (fparams.call_status == FUNCTION_CALL_DONE)
 			break;
 		thd_pass();
 	}
@@ -133,6 +133,9 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	if (fparams.out.size > 0)
 		aica_download(out, fparams.out.ptr, fparams.out.size);
 
+	/* Mark the function as available */
+	fparams.call_status = FUNCTION_CALL_AVAIL;
+	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(struct function_params));
 	return 0;
 }
 
@@ -140,7 +143,7 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 {
 	struct call_params cparams;
 	struct function_params fparams;
-	unsigned int flag = FUNCTION_CALL_AVAIL;
+	unsigned int flag = FUNCTION_CALL_DONE;
 
 	/* Create a new idle thread to handle next request */
 	thd = thd_create_idle();

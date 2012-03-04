@@ -23,6 +23,7 @@
 
 #define FUNCTION_CALL_AVAIL   1
 #define FUNCTION_CALL_PENDING 2
+#define FUNCTION_CALL_DONE    3
 
 typedef int (*aica_funcp_t)(void *, void *);
 
