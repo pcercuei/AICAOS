@@ -2,6 +2,7 @@
 #include <kos.h>
 
 #include "../aica_common.h"
+#include "aica_sh4.h"
 
 extern uint8 romdisk[];
 

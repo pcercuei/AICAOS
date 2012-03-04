@@ -4,6 +4,7 @@
 #include "../aica_registers.h"
 #include "../aica_syscalls.h"
 #include "../aica_common.h"
+#include "aica_sh4.h"
 
 /* /!\ Invalid pointer - Do NOT deference it! */
 static struct io_channel *io_addr_arm;

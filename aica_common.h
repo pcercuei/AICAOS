@@ -125,11 +125,6 @@ void aica_interrupt_init(void);
 /* Send a notification to the remote processor. */
 void aica_interrupt(void);
 
-/* Init the AICA communication subsystem.
- * The parameter is the filename of the driver file
- * (should be NULL when called from the ARM7). */
-int aica_init(char *fn);
-
 /* Stop all communication with the AICA subsystem. */
 void aica_exit(void);
 
