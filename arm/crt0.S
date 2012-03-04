@@ -131,7 +131,6 @@ start:
 		bhi clear_bss_loop
 
 	# Call the C "aica_init" function
-	mov r0,#0
 	bl aica_init
 
 program_end:

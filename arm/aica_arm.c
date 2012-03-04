@@ -39,12 +39,9 @@ static struct task * task_create_main(void)
 	return task_create(&cxt);
 }
 
-int aica_init(char *fn)
+void aica_init(void)
 {
 	struct task *main_task;
-
-	/* Discard GCC warnings about unused parameter */
-	(void)fn;
 
 	io_addr = (struct io_channel *) calloc(2, sizeof(struct io_channel));
 
@@ -67,9 +64,6 @@ int aica_init(char *fn)
 
 	task_add_to_runnable(main_task, PRIORITY_MAX);
 	task_select(main_task);
-
-	/* Never reached */
-	return -1;
 }
 
 void aica_exit(void)
