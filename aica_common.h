@@ -143,8 +143,6 @@ void aica_exit(void);
 		int res = __aica_call(0, #func, &_##func##_id, 0); \
 		if (res < 0) \
 			return res; \
-		if (_##func##_id < 0) \
-			return -EAGAIN; \
 	} \
 	return __aica_call(_##func##_id, in, out, prio); \
   }
