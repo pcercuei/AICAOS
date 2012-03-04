@@ -39,7 +39,8 @@ static struct task * task_create_main(void)
 	return task_create(&cxt);
 }
 
-void aica_init(void)
+/* Called from crt0.S */
+void __aica_init(void)
 {
 	struct task *main_task;
 

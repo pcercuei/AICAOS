@@ -2,7 +2,7 @@
 .text
 .align
 
-.extern aica_init
+.extern __aica_init
 .extern aica_sh4_fiq_hdl
 .extern bus_fiq_hdl
 .extern timer_fiq_hdl
@@ -130,8 +130,8 @@ start:
 		cmp r0,r1
 		bhi clear_bss_loop
 
-	# Call the C "aica_init" function
-	bl aica_init
+	# Call the C "__aica_init" function
+	bl __aica_init
 
 program_end:
 	# Loop infinitely when we get here
