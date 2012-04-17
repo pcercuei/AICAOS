@@ -110,7 +110,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 	/* Wait until a new call can be made. */
 	while (1) {
-		aica_download(&cparams.sync, &io_addr_arm[SH_TO_ARM].cparams.sync, sizeof(cparams.sync));
+		aica_download(&cparams, &io_addr_arm[SH_TO_ARM].cparams, sizeof(cparams));
 		if (!cparams.sync)
 			break;
 		thd_pass();
