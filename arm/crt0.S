@@ -21,15 +21,6 @@ reset:
 	b rsrvd
 	b irq_hdl
 
-	# FIQ handling: acknowledge the interrupt so
-	# that it won't reappear once in Supervisor mode
-	ldr r11, reg_arm_fiq_ack
-	mov r12, #1
-	str r12, [r11]
-	str r12, [r11]
-	str r12, [r11]
-	str r12, [r11]
-
 	# Load the FIQ code, and jump to
 	# the corresponding function.
 	ldr r8, reg_arm_fiq_code
@@ -44,11 +35,6 @@ reset:
 	ldr r8, =current_task
 	ldr r8, [r8]
 	stmia r8, {r0-r7,r14}
-
-	# Reset the interrupt raised by the SH-4
-	ldr r11, reg_arm_int_reset
-	mov r12, #MAGIC_CODE
-	str r12, [r11]
 
 	# Save the banked CPSR for later
 	mrs r1, SPSR

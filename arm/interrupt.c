@@ -38,6 +38,12 @@ int int_enabled(void)
 	return !(cpsr & (I_BIT | F_BIT));
 }
 
+void int_acknowledge(void)
+{
+	*(unsigned int *) REG_ARM_INT_RESET = MAGIC_CODE;
+	*(unsigned int *) REG_ARM_FIQ_ACK = 1;
+}
+
 /* Called from crt0.S */
 void __attribute__((interrupt ("FIQ"))) bus_fiq_hdl(void)
 {

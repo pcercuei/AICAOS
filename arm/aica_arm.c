@@ -189,6 +189,9 @@ void aica_sh4_fiq_hdl(void)
 				&io_addr[SH_TO_ARM].fparams[cparams.id]);
 
 	task_add_to_runnable(task, cparams.prio);
+
+	/* Reset the interrupt raised by the SH-4 */
+	int_acknowledge();
 	task_select(task);
 }
 
