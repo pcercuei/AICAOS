@@ -83,6 +83,10 @@ struct task * task_create(struct context *cxt)
 	task->stack_size = DEFAULT_STACK_SIZE;
 	task->stack = malloc(DEFAULT_STACK_SIZE);
 	task->context.r8_r14[5] = (uint32_t) task->stack + DEFAULT_STACK_SIZE;
+	if (!task->stack) {
+		free(task);
+		return NULL;
+	}
 
 	/* Init newlib's reent structure */
 	_REENT_INIT_PTR(&task->reent);
