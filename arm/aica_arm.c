@@ -167,6 +167,7 @@ static struct task * create_handler(aica_funcp_t func, struct function_params *f
 void aica_sh4_fiq_hdl(void)
 {
 	struct call_params cparams;
+	struct function_params *fparams;
 	struct task *task;
 	aica_funcp_t func;
 
@@ -179,15 +180,18 @@ void aica_sh4_fiq_hdl(void)
 	/* The call data has been read, clear the sync flag and acknowledge */
 	io_addr[SH_TO_ARM].cparams.sync = 0;
 
+	fparams = &io_addr[SH_TO_ARM].fparams[cparams.id];
 	func = aica_get_func_from_id(cparams.id);
 	if (!func) {
-		fprintf(stderr, "No function found for ID %i.\n", cparams.id);
+		/* If the function is not found, we return the code
+		 * -EAGAIN, acknowledge the interrupt and reschedule. */
+		fparams->return_value = -EAGAIN;
+		fparams->call_status = FUNCTION_CALL_DONE;
+		int_acknowledge();
 		__task_reschedule();
 	}
 
-	task = create_handler(func,
-				&io_addr[SH_TO_ARM].fparams[cparams.id]);
-
+	task = create_handler(func, fparams);
 	task_add_to_runnable(task, cparams.prio);
 
 	/* Reset the interrupt raised by the SH-4 */
