@@ -10,7 +10,7 @@
 
 void int_restore(uint32_t context)
 {
-	asm volatile("msr CPSR_all,%0" : : "r"(context));
+	asm volatile("msr CPSR_c,%0" : : "r"(context));
 }
 
 uint32_t int_disable(void)
