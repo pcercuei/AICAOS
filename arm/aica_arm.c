@@ -187,12 +187,11 @@ void aica_sh4_fiq_hdl(void)
 		 * -EAGAIN, acknowledge the interrupt and reschedule. */
 		fparams->return_value = -EAGAIN;
 		fparams->call_status = FUNCTION_CALL_DONE;
-		int_acknowledge();
-		__task_reschedule();
+		task = current_task;
+	} else {
+		task = create_handler(func, fparams);
+		task_add_to_runnable(task, cparams.prio);
 	}
-
-	task = create_handler(func, fparams);
-	task_add_to_runnable(task, cparams.prio);
 
 	/* Reset the interrupt raised by the SH-4 */
 	int_acknowledge();
