@@ -42,6 +42,14 @@ void __aica_init(void)
 	 * from the names of the functions to call. */
 	AICA_SHARE(get_arm_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
 
+	/* If the AICA_SHARED_LIST is used, we share all
+	 * the functions it contains. */
+	if (__aica_shared_list) {
+		struct __aica_shared_function *ptr;
+		for (ptr = __aica_shared_list; ptr->func; ptr++)
+			__aica_share(ptr->func, ptr->name, ptr->sz_in, ptr->sz_out);
+	}
+
 	aica_interrupt_init();
 	__io_init = io_addr;
 

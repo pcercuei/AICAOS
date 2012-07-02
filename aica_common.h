@@ -129,6 +129,21 @@ void aica_interrupt(void);
 void aica_exit(void);
 
 
+struct __aica_shared_function {
+	aica_funcp_t func;
+	const char *name;
+	size_t sz_in, sz_out;
+};
+
+#define AICA_SHARED_LIST struct __aica_shared_function __aica_shared_list[]
+extern AICA_SHARED_LIST __attribute__((weak));
+
+#define AICA_SHARED_LIST_ELEMENT(func, sz_in, sz_out) \
+  { func, #func, sz_in, sz_out, }
+
+#define AICA_SHARED_LIST_END \
+  { NULL, NULL, 0, 0, }
+
 #define AICA_SHARE(func, sz_in, sz_out) \
   __aica_share(func, #func, sz_in, sz_out)
 
