@@ -77,15 +77,13 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	uint32_t int_context;
 	int return_value;
 
+	/* Protect from context changes. */
+	int_context = int_disable();
+
 	/* Wait here if a previous call is pending. */
 	while((*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync)
 				|| (*(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_AVAIL))
-	{
-		/* TODO: yield the thread (when there'll be one... */
-	}
-
-	/* Protect from context changes. */
-	int_context = int_disable();
+		task_reschedule();
 
 	io_addr[ARM_TO_SH].cparams.id = id;
 	io_addr[ARM_TO_SH].cparams.prio = prio;
@@ -95,17 +93,17 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
 
 	aica_interrupt();
-	int_restore(int_context);
 
 	/* We will wait until the call completes. */
-	while( *(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_DONE) {
-		/* TODO: yield the thread */
-	}
+	while( *(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_DONE)
+		task_reschedule();
 
 	return_value = io_addr[ARM_TO_SH].fparams[id].return_value;
 
 	/* Mark the function as available */
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_AVAIL;
+
+	int_restore(int_context);
 	return return_value;
 }
 
