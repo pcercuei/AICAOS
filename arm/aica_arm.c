@@ -136,14 +136,6 @@ static void task_birth(aica_funcp_t func, struct function_params *fparams)
 }
 
 
-static struct task * create_handler(aica_funcp_t func, struct function_params *fparams)
-{
-	void *params[4] = { func, fparams, 0, 0, };
-
-	return task_create(task_birth, params);
-}
-
-
 /* Called from crt0.S */
 void aica_sh4_fiq_hdl(void)
 {
@@ -170,7 +162,8 @@ void aica_sh4_fiq_hdl(void)
 		fparams->call_status = FUNCTION_CALL_DONE;
 		task = current_task;
 	} else {
-		task = create_handler(func, fparams);
+		void *params[4] = { func, fparams, 0, 0, };
+		task = task_create(task_birth, params);
 		task_add_to_runnable(task, cparams.prio);
 	}
 
