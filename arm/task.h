@@ -42,7 +42,8 @@ void task_select(struct task *task);
  * Located in task_asm.S */
 void task_reschedule(void);
 
-/* Exit the currently running task */
+/* Exit the currently running task.
+ * This function is called automatically when the routine returns. */
 void task_exit(void);
 
 #endif

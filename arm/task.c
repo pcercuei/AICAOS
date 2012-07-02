@@ -88,6 +88,7 @@ struct task * task_create(void *func, void *param[4])
 	if (param)
 		memcpy(task->context.r0_r7, param, 4 * sizeof(void *));
 	task->context.r8_r14[5] = (uint32_t) task->stack + DEFAULT_STACK_SIZE;
+	task->context.r8_r14[6] = (uint32_t) task_exit;
 	task->context.pc = func;
 	task->context.cpsr = 0x13; /* supervisor */
 

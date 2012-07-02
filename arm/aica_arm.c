@@ -133,7 +133,6 @@ static void task_birth(aica_funcp_t func, struct function_params *fparams)
 {
 	fparams->return_value = func(fparams->out.ptr, fparams->in.ptr);
 	fparams->call_status = FUNCTION_CALL_DONE;
-	task_exit();
 }
 
 
