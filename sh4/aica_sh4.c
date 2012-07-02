@@ -203,7 +203,7 @@ static kthread_t * thd_create_idle(void)
 {
 	int irq_status = irq_disable();
 
-	kthread_t * thread = thd_create(THD_DEFAULTS, aica_arm_fiq_hdl_thd, NULL);
+	kthread_t * thread = thd_create(THD_DETACHED, aica_arm_fiq_hdl_thd, NULL);
 	thd_remove_from_runnable(thread);
 	thd_set_prio(thread, 0);
 
