@@ -27,10 +27,9 @@ struct task {
 /* Pointer to the current task */
 extern struct task *current_task;
 
-/* Create a new task, with the corresponding context.
- * At least cxt->pc should be set to the function to execute.
- * XXX: The stack pointer (r13) is overwritten. */
-struct task * task_create(struct context *cxt);
+/* Create a new task that will execute the given
+ * routine, with the corresponding arguments. */
+struct task * task_create(void *func, void *param[4]);
 
 /* Add the task to the runnable queue */
 void task_add_to_runnable(struct task *task, unsigned char prio);

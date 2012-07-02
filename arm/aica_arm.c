@@ -29,16 +29,6 @@ static void __main(void)
 		task_reschedule();
 }
 
-static struct task * task_create_main(void)
-{
-	struct context cxt = {
-		.pc = (aica_funcp_t) __main,
-		.cpsr = 0x13, /* supervisor */
-	};
-
-	return task_create(&cxt);
-}
-
 /* Called from crt0.S */
 void __aica_init(void)
 {
@@ -59,7 +49,7 @@ void __aica_init(void)
 	while (*(volatile int *) &__io_init != 0);
 
 	/* Create the main thread, that should start right after aica_init(). */
-	main_task = task_create_main();
+	main_task = task_create(__main, NULL);
 	if (!main_task)
 		printf("Unable to create main task.\n");
 
@@ -149,17 +139,9 @@ static void task_birth(aica_funcp_t func, struct function_params *fparams)
 
 static struct task * create_handler(aica_funcp_t func, struct function_params *fparams)
 {
-	struct context cxt = {
-		.r0_r7 = {
-			(uint32_t) func,
-			(uint32_t) fparams,
-			0, 0, 0, 0, 0, 0,
-		},
-		.pc = (aica_funcp_t) task_birth,
-		.cpsr = 0x13, /* supervisor */
-	};
+	void *params[4] = { func, fparams, 0, 0, };
 
-	return task_create(&cxt);
+	return task_create(task_birth, params);
 }
 
 

@@ -71,22 +71,25 @@ void task_exit(void)
 	}
 }
 
-struct task * task_create(struct context *cxt)
+struct task * task_create(void *func, void *param[4])
 {
 	struct task *task = malloc(sizeof(struct task));
 	if (!task)
 		return NULL;
 
-	memcpy(&task->context, cxt, sizeof(struct context));
-
 	/* Init the stack */
 	task->stack_size = DEFAULT_STACK_SIZE;
 	task->stack = malloc(DEFAULT_STACK_SIZE);
-	task->context.r8_r14[5] = (uint32_t) task->stack + DEFAULT_STACK_SIZE;
 	if (!task->stack) {
 		free(task);
 		return NULL;
 	}
+
+	if (param)
+		memcpy(task->context.r0_r7, param, 4 * sizeof(void *));
+	task->context.r8_r14[5] = (uint32_t) task->stack + DEFAULT_STACK_SIZE;
+	task->context.pc = func;
+	task->context.cpsr = 0x13; /* supervisor */
 
 	/* Init newlib's reent structure */
 	_REENT_INIT_PTR(&task->reent);
