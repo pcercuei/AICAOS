@@ -77,6 +77,9 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	uint32_t int_context;
 	int return_value;
 
+	if (id >= NB_MAX_FUNCTIONS)
+		return -EINVAL;
+
 	/* Protect from context changes. */
 	int_context = int_disable();
 

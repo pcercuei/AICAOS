@@ -98,6 +98,9 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	struct call_params cparams;
 	int return_value;
 
+	if (id >= NB_MAX_FUNCTIONS)
+		return -EINVAL;
+
 	do {
 		/* We retrieve the parameters of the function we want to execute */
 		aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
