@@ -216,7 +216,6 @@ static kthread_t * thd_create_idle(void)
 
 static void acknowledge(void)
 {
-	g2_fifo_wait();
 	g2_write_32(AICA_FROM_SH4(REG_SH4_INT_RESET), MAGIC_CODE);
 }
 
@@ -237,7 +236,6 @@ void aica_interrupt_init(void)
 
 void aica_interrupt(void)
 {
-	g2_fifo_wait();
 	g2_write_32(AICA_FROM_SH4(REG_ARM_INT_SEND), MAGIC_CODE);
 }
 
