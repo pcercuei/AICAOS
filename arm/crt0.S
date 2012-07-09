@@ -40,8 +40,9 @@ reset:
 	mrs r1, SPSR
 
 	# Switch to Supervisor mode
+	# and disable interrupts
 	mrs r9, CPSR
-	orr r9, r9, #0x13
+	orr r9, r9, #0xd3
 	msr CPSR_c, r9
 	nop
 	nop
