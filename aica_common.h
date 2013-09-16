@@ -1,4 +1,3 @@
-
 #ifndef _AICA_H
 #define _AICA_H
 
@@ -21,9 +20,9 @@
  * It means that the function call did not success. */
 #define EAICA 101
 
-#define FUNCTION_CALL_AVAIL   1
-#define FUNCTION_CALL_PENDING 2
-#define FUNCTION_CALL_DONE    3
+#define FUNCTION_CALL_AVAIL		1
+#define FUNCTION_CALL_PENDING	2
+#define FUNCTION_CALL_DONE		3
 
 typedef int (*aica_funcp_t)(void *, void *);
 
@@ -90,13 +89,15 @@ struct io_channel
 /* Make a function available to the remote processor.
  * /!\ Never use that function directly!
  * Use the macro AICA_SHARE instead. */
-void __aica_share(aica_funcp_t func, const char *funcname, size_t sz_in, size_t sz_out);
+void __aica_share(aica_funcp_t func,
+			const char *funcname, size_t sz_in, size_t sz_out);
 
 /* Call a function shared by the remote processor.
  * /!\ Never use that function directly!
  * Use the AICA_ADD_REMOTE macro instead; it will
  * define locally the remote function. */
-int __aica_call(unsigned int id, void *in, void *out, unsigned short prio);
+int __aica_call(unsigned int id,
+			void *in, void *out, unsigned short prio);
 
 /* Unregister the handler at the given ID. */
 int aica_clear_handler(unsigned int id);
@@ -105,7 +106,8 @@ int aica_clear_handler(unsigned int id);
 void aica_clear_handler_table(void);
 
 /* Update the function params table. */
-void aica_update_fparams_table(unsigned int id, struct function_params *fparams);
+void aica_update_fparams_table(unsigned int id,
+			struct function_params *fparams);
 
 /* Return the ID associated to a function name. */
 int aica_find_id(unsigned int *id, char *funcname);
@@ -142,28 +144,27 @@ struct __aica_shared_function {
 extern AICA_SHARED_LIST __attribute__((weak));
 
 #define AICA_SHARED_LIST_ELEMENT(func, sz_in, sz_out) \
-  { func, #func, sz_in, sz_out, }
+	{ func, #func, sz_in, sz_out, }
 
 #define AICA_SHARED_LIST_END \
-  { NULL, NULL, 0, 0, }
+	{ NULL, NULL, 0, 0, }
 
 #define AICA_SHARE(func, sz_in, sz_out) \
-  __aica_share(func, #func, sz_in, sz_out)
+	__aica_share(func, #func, sz_in, sz_out)
 
 #define AICA_SHARED(func) \
-  int func(void *out, void *in)
+	int func(void *out, void *in)
 
 #define AICA_ADD_REMOTE(func, prio) \
-  static int _##func##_id = -1; \
-  int func(void *out, void *in) \
-  { \
-	if (_##func##_id < 0) { \
-		int res = __aica_call(0, #func, &_##func##_id, 0); \
-		if (res < 0) \
-			return res; \
-	} \
-	return __aica_call(_##func##_id, in, out, prio); \
-  }
+	static int _##func##_id = -1; \
+	int func(void *out, void *in) \
+	{ \
+		if (_##func##_id < 0) { \
+			int res = __aica_call(0, #func, &_##func##_id, 0); \
+			if (res < 0) \
+				return res; \
+		} \
+		return __aica_call(_##func##_id, in, out, prio); \
+	}
 
 #endif
-

@@ -29,7 +29,7 @@ static void __main(void)
 		printf("ARM main terminated with status %i\n", err);
 	}
 
-	while(1)
+	while (1)
 		task_reschedule();
 }
 
@@ -38,13 +38,13 @@ void __aica_init(void)
 {
 	struct task *main_task;
 
-	io_addr = (struct io_channel *) calloc(2, sizeof(struct io_channel));
+	io_addr = (struct io_channel *) calloc(2, sizeof(*io_addr));
 
 	aica_clear_handler_table();
 
 	/* That function will be used by the remote processor to get IDs
 	 * from the names of the functions to call. */
-	AICA_SHARE(get_arm_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
+	AICA_SHARE(get_arm_func_id, FUNCNAME_MAX_LENGTH, 4);
 
 	/* If the AICA_SHARED_LIST is used, we share all
 	 * the functions it contains. */
@@ -79,6 +79,8 @@ void aica_exit(void)
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
 	int return_value;
+	struct function_params *fparams = &io_addr[ARM_TO_SH].fparams[id];
+	struct call_params *cparams = &io_addr[ARM_TO_SH].cparams;
 
 	if (id >= NB_MAX_FUNCTIONS)
 		return -EINVAL;
@@ -86,44 +88,42 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	/* Wait here if a previous call is pending. */
 	for (;;) {
 		spinlock_lock(&fparams_lock);
-		if (*(unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status
-					== FUNCTION_CALL_AVAIL)
+		if (*(unsigned int *) &fparams->call_status == FUNCTION_CALL_AVAIL)
 			break;
 		spinlock_unlock(&fparams_lock);
 		task_reschedule();
 	}
 
-	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
+	fparams->call_status = FUNCTION_CALL_PENDING;
 	spinlock_unlock(&fparams_lock);
 
 	spinlock_lock(&call_lock);
-	io_addr[ARM_TO_SH].cparams.id = id;
-	io_addr[ARM_TO_SH].cparams.prio = prio;
-	io_addr[ARM_TO_SH].cparams.in = in;
-	io_addr[ARM_TO_SH].cparams.out = out;
-	io_addr[ARM_TO_SH].cparams.sync = 1;
+	cparams->id = id;
+	cparams->prio = prio;
+	cparams->in = in;
+	cparams->out = out;
+	cparams->sync = 1;
 
 	aica_interrupt();
 
 	/* Wait for the sync flag to be cleared by the SH4,
 	 * before unlocking the call mutex */
-	while (*(unsigned char *) &io_addr[ARM_TO_SH].cparams.sync)
+	while (*(unsigned char *) &cparams->sync)
 		task_reschedule();
 
 	spinlock_unlock(&call_lock);
 
 	/* We will wait until the call completes. */
-	while( *(unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status
-				!= FUNCTION_CALL_DONE)
+	while (*(unsigned int *) &fparams->call_status != FUNCTION_CALL_DONE)
 		task_reschedule();
 
-	return_value = io_addr[ARM_TO_SH].fparams[id].return_value;
+	return_value = fparams->return_value;
 
 	/* Set the 'errno' variable to the value returned by the ARM */
 	errno = io_addr[ARM_TO_SH].fparams[id].err_no;
 
 	/* Mark the function as available */
-	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_AVAIL;
+	fparams->call_status = FUNCTION_CALL_AVAIL;
 
 	return return_value;
 }
@@ -132,9 +132,12 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 void aica_interrupt_init(void)
 {
 	/* Set the FIQ code */
-	*(unsigned int *) REG_ARM_FIQ_BIT_2  = (SH4_INTERRUPT_INT_CODE & 4) ? MAGIC_CODE : 0;
-	*(unsigned int *) REG_ARM_FIQ_BIT_1  = (SH4_INTERRUPT_INT_CODE & 2) ? MAGIC_CODE : 0;
-	*(unsigned int *) REG_ARM_FIQ_BIT_0  = (SH4_INTERRUPT_INT_CODE & 1) ? MAGIC_CODE : 0;
+	*(unsigned int *) REG_ARM_FIQ_BIT_2  =
+					(SH4_INTERRUPT_INT_CODE & 4) ? MAGIC_CODE : 0;
+	*(unsigned int *) REG_ARM_FIQ_BIT_1  =
+					(SH4_INTERRUPT_INT_CODE & 2) ? MAGIC_CODE : 0;
+	*(unsigned int *) REG_ARM_FIQ_BIT_0  =
+					(SH4_INTERRUPT_INT_CODE & 1) ? MAGIC_CODE : 0;
 
 	/* Allow the SH4 to raise interrupts on the ARM */
 	*(unsigned int *) REG_ARM_INT_ENABLE = MAGIC_CODE;
@@ -152,7 +155,7 @@ void aica_interrupt(void)
 
 void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 {
-	memcpy(&io_addr[SH_TO_ARM].fparams[id], fparams, sizeof(struct function_params));
+	memcpy(&io_addr[SH_TO_ARM].fparams[id], fparams, sizeof(*fparams));
 }
 
 
@@ -179,7 +182,7 @@ void aica_sh4_fiq_hdl(void)
 	_impure_ptr = _global_impure_ptr;
 
 	/* Retrieve the call parameters */
-	memcpy(&cparams, &io_addr[SH_TO_ARM].cparams, sizeof(struct call_params));
+	memcpy(&cparams, &io_addr[SH_TO_ARM].cparams, sizeof(cparams));
 
 	/* The call data has been read, clear the sync flag and acknowledge */
 	io_addr[SH_TO_ARM].cparams.sync = 0;
@@ -202,4 +205,3 @@ void aica_sh4_fiq_hdl(void)
 	int_acknowledge();
 	task_select(task);
 }
-

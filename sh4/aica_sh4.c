@@ -1,4 +1,3 @@
-
 #include <kos.h>
 
 #include "../aica_registers.h"
@@ -30,11 +29,12 @@ int aica_init(char *fn)
 	g2_fifo_wait();
 	g2_write_32(__io_init, 0);
 
-	/* TODO: It would be faster to use mmap here, if the driver lies on the romdisk. */
+	/* TODO: It would be faster to use mmap here,
+	 * if the driver lies on the romdisk. */
 	file_t file = fs_open(fn, O_RDONLY);
 
 	if (file < 0)
-	  return -1;
+		return -1;
 
 	fs_seek(file, 0, SEEK_END);
 	int size = fs_tell(file);
@@ -55,15 +55,16 @@ int aica_init(char *fn)
 	fs_close(file);
 	free(buffer);
 
-	/* We wait until the ARM-7 writes at the address __io_init the message buffer's address. */
+	/* We wait until the ARM-7 writes at the address
+	 * __io_init the message buffer's address. */
 	do {
 		g2_fifo_wait();
-		io_addr_arm = (struct io_channel *)g2_read_32(__io_init);
-	} while(!io_addr_arm);
+		io_addr_arm = (struct io_channel *) g2_read_32(__io_init);
+	} while (!io_addr_arm);
 
 	/* That function will be used by the remote processor to get IDs
 	 * from the names of the functions to call. */
-	AICA_SHARE(__get_sh4_func_id, FUNCNAME_MAX_LENGTH, sizeof(unsigned int));
+	AICA_SHARE(__get_sh4_func_id, FUNCNAME_MAX_LENGTH, 4);
 
 	/* If the AICA_SHARED_LIST is used, we share all
 	 * the functions it contains. */
@@ -101,34 +102,37 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	if (id >= NB_MAX_FUNCTIONS)
 		return -EINVAL;
 
-	do {
+	while (1) {
 		/* We retrieve the parameters of the function we want to execute */
-		aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
+		aica_download(&fparams,
+					&io_addr_arm[SH_TO_ARM].fparams[id], sizeof(fparams));
 
 		/* We don't want two calls to the same function
 		 * to occur at the same time. */
 		if (fparams.call_status == FUNCTION_CALL_AVAIL)
 			break;
 		thd_pass();
-	} while(1);
+	}
 
 	fparams.call_status = FUNCTION_CALL_PENDING;
-	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(struct function_params));
+	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(fparams));
 
 	/* We will start transfering the input buffer. */
 	if (fparams.in.size > 0)
-	  aica_upload(fparams.in.ptr, in, fparams.in.size);
+		aica_upload(fparams.in.ptr, in, fparams.in.size);
 
 	/* Wait until a new call can be made. */
 	while (1) {
-		aica_download(&cparams, &io_addr_arm[SH_TO_ARM].cparams, sizeof(cparams));
+		aica_download(&cparams,
+					&io_addr_arm[SH_TO_ARM].cparams, sizeof(cparams));
 		if (!cparams.sync)
 			break;
 		thd_pass();
 	}
 
 	/* Fill the I/O structure with the call parameters, and submit the new call.
-	 * That function will return immediately, even if the remote function has yet to be executed. */
+	 * That function will return immediately, even if the remote function
+	 * has yet to be executed. */
 	cparams.id = id;
 	cparams.prio = prio;
 	cparams.sync = 1;
@@ -137,7 +141,8 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 	/* Wait until the call completes to transfer the data. */
 	while (1) {
-		aica_download(&fparams, &io_addr_arm[SH_TO_ARM].fparams[id], sizeof(struct function_params));
+		aica_download(&fparams,
+					&io_addr_arm[SH_TO_ARM].fparams[id], sizeof(fparams));
 		if (fparams.call_status == FUNCTION_CALL_DONE)
 			break;
 		thd_pass();
@@ -152,7 +157,7 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 	/* Mark the function as available */
 	fparams.call_status = FUNCTION_CALL_AVAIL;
-	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(struct function_params));
+	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(fparams));
 	return return_value;
 }
 
@@ -165,18 +170,17 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 	thd = thd_create_idle();
 
 	/* Retrieve the call parameters */
-	aica_download(&cparams, &io_addr_arm[ARM_TO_SH].cparams, sizeof(struct call_params));
+	aica_download(&cparams, &io_addr_arm[ARM_TO_SH].cparams, sizeof(cparams));
 
 	/* The call data has been read, clear the sync flag and acknowledge. */
 	cparams.sync = 0;
-	aica_upload(&io_addr_arm[ARM_TO_SH].cparams, &cparams, sizeof(struct call_params));
+	aica_upload(&io_addr_arm[ARM_TO_SH].cparams, &cparams, sizeof(cparams));
 
 	thd_set_prio(thd_get_current(), cparams.prio);
 
 	/* Download information about the function to call */
 	aica_download(&fparams,
-				&io_addr_arm[ARM_TO_SH].fparams[cparams.id],
-				sizeof(struct function_params));
+				&io_addr_arm[ARM_TO_SH].fparams[cparams.id], sizeof(fparams));
 
 	/* Download the input data if any. */
 	if (fparams.in.size > 0)
@@ -203,7 +207,7 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 	/* Inform the ARM that the call is complete. */
 	fparams.call_status = FUNCTION_CALL_DONE;
 	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[cparams.id],
-				&fparams, sizeof(struct function_params));
+				&fparams, sizeof(fparams));
 
 	return NULL;
 }
@@ -247,7 +251,7 @@ void aica_interrupt(void)
 
 void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 {
-	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[id], fparams, sizeof(struct function_params));
+	aica_upload(&io_addr_arm[ARM_TO_SH].fparams[id], fparams, sizeof(*fparams));
 }
 
 void aica_upload(void *dest, const void *from, size_t size)
@@ -259,4 +263,3 @@ void aica_download(void *dest, const void *from, size_t size)
 {
 	spu_memread(dest, (unsigned int)from, size);
 }
-

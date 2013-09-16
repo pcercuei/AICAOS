@@ -1,6 +1,5 @@
-
-#include <kos.h>
 #include <alloca.h>
+#include <kos.h>
 
 #include "../aica_syscalls.h"
 

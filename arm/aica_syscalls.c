@@ -1,4 +1,3 @@
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -62,9 +61,7 @@ void * _sbrk_r(struct _reent *r, ptrdiff_t incr)
 }
 
 
-
 /* AICA-specific syscalls */
-
 #include "../aica_syscalls.h"
 
 AICA_ADD_REMOTE(sh4_open, PRIORITY_DEFAULT);

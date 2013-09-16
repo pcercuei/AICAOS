@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 #include <sys/queue.h>
@@ -14,10 +13,11 @@ struct Handler {
 
 static SLIST_HEAD(Head, Handler) head = SLIST_HEAD_INITIALIZER(head);
 
-void __aica_share(aica_funcp_t func, const char *funcname, size_t sz_in, size_t sz_out)
+void __aica_share(aica_funcp_t func,
+			const char *funcname, size_t sz_in, size_t sz_out)
 {
 	unsigned int id;
-	struct Handler *hdl = malloc(sizeof(struct Handler));
+	struct Handler *hdl = malloc(sizeof(*hdl));
 
 	if (SLIST_FIRST(&head) == NULL)
 		id = 0;
@@ -59,7 +59,7 @@ void aica_clear_handler_table(void)
 {
 	struct Handler *hdl;
 
-	while(1) {
+	while (1) {
 		hdl = SLIST_FIRST(&head);
 		if (!hdl)
 			return;
