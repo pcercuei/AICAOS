@@ -6,7 +6,6 @@
 
 static AICA_SHARED(sh4_open)
 {
-	int *result = (int *) out;
 	char *fn;
 	struct open_param *p = (struct open_param *) in;
 
@@ -14,33 +13,29 @@ static AICA_SHARED(sh4_open)
 	aica_download(fn, p->name, p->namelen);
 	fn[p->namelen] = '\0';
 
-	*result = open(fn, p->flags, p->mode);
-	return 0;
+	return open(fn, p->flags, p->mode);
 }
 
 static AICA_SHARED(sh4_close)
 {
-	int *result = (int *) out;
-	int *file = (int *) in;
-
-	*result = close(*file);
-	return 0;
+	return close(*(int *) in);
 }
 
 static AICA_SHARED(sh4_fstat)
 {
-	int *result = (int *) out;
+	int result;
 	struct stat st;
 	struct fstat_param *p = (struct fstat_param *) in;
 
-	*result = fstat(p->file, &st);
-	aica_upload(p->st, &st, sizeof(struct stat));
-	return 0;
+	result = fstat(p->file, &st);
+	if (!result)
+		aica_upload(p->st, &st, sizeof(st));
+	return result;
 }
 
 static AICA_SHARED(sh4_stat)
 {
-	int *result = (int *) out;
+	int result;
 	struct stat st;
 	char *fn;
 	struct stat_param *p = (struct stat_param *) in;
@@ -49,23 +44,19 @@ static AICA_SHARED(sh4_stat)
 	aica_download(fn, p->name, p->namelen);
 	fn[p->namelen] = '\0';
 
-	*result = stat(fn, &st);
-	aica_upload(p->st, &st, sizeof(struct stat));
-	return 0;
+	result = stat(fn, &st);
+	if (!result)
+		aica_upload(p->st, &st, sizeof(st));
+	return result;
 }
 
 static AICA_SHARED(sh4_isatty)
 {
-	int *result = (int *) out;
-	int *file = (int *) in;
-
-	*result = isatty(*file);
-	return 0;
+	return isatty(*(int *) in);
 }
 
 static AICA_SHARED(sh4_link)
 {
-	int *result = (int *) out;
 	struct link_param *p = (struct link_param *) in;
 	char *fn_old, *fn_new;
 
@@ -76,56 +67,50 @@ static AICA_SHARED(sh4_link)
 	fn_old[p->namelen_old] = '\0';
 	fn_new[p->namelen_new] = '\0';
 
-	*result = link(fn_old, fn_new);
-	return 0;
+	return link(fn_old, fn_new);
 }
 
 static AICA_SHARED(sh4_lseek)
 {
-	off_t *result = (off_t *) out;
 	struct lseek_param *p = (struct lseek_param *) in;
-
-	*result = lseek(p->file, p->ptr, p->dir);
-	return 0;
+	return lseek(p->file, p->ptr, p->dir);
 }
 
 /* TODO: optimize... */
 static AICA_SHARED(sh4_read)
 {
-	_READ_WRITE_RETURN_TYPE *result = (_READ_WRITE_RETURN_TYPE *) out;
+	_READ_WRITE_RETURN_TYPE result;
 	struct read_param *p = (struct read_param *) in;
-	void *buf = malloc(p->len);
+	void *buf = alloca(p->len);
 
-	*result = read(p->file, buf, p->len);
-	aica_upload(p->ptr, buf, p->len);
-	free(buf);
-	return 0;
+	result = read(p->file, buf, p->len);
+	if (result != -1)
+		aica_upload(p->ptr, buf, p->len);
+	return (int) result;
 }
 
 /* TODO: optimize... */
 static AICA_SHARED(sh4_write)
 {
-	_READ_WRITE_RETURN_TYPE *result = (_READ_WRITE_RETURN_TYPE *) out;
+	_READ_WRITE_RETURN_TYPE result;
 	struct write_param *p = (struct write_param *) in;
-	void *buf = malloc(p->len);
+	void *buf = alloca(p->len);
 
 	aica_download(buf, p->ptr, p->len);
-	*result = write(p->file, buf, p->len);
-	free(buf);
-	return 0;
+	result = write(p->file, buf, p->len);
+	return (int) result;
 }
 
 
 void aica_init_syscalls(void)
 {
-	AICA_SHARE(sh4_open, sizeof(struct open_param), sizeof(int));
-	AICA_SHARE(sh4_close, sizeof(int), sizeof(int));
-	AICA_SHARE(sh4_fstat, sizeof(struct fstat_param), sizeof(int));
-	AICA_SHARE(sh4_stat, sizeof(struct stat_param), sizeof(int));
-	AICA_SHARE(sh4_isatty, sizeof(int), sizeof(int));
-	AICA_SHARE(sh4_link, sizeof(struct link_param), sizeof(int));
-	AICA_SHARE(sh4_lseek, sizeof(struct lseek_param), sizeof(off_t));
-	AICA_SHARE(sh4_read, sizeof(struct read_param), sizeof(_READ_WRITE_RETURN_TYPE));
-	AICA_SHARE(sh4_write, sizeof(struct write_param), sizeof(_READ_WRITE_RETURN_TYPE));
+	AICA_SHARE(sh4_open, sizeof(struct open_param), 0);
+	AICA_SHARE(sh4_close, sizeof(int), 0);
+	AICA_SHARE(sh4_fstat, sizeof(struct fstat_param), 0);
+	AICA_SHARE(sh4_stat, sizeof(struct stat_param), 0);
+	AICA_SHARE(sh4_isatty, sizeof(int), 0);
+	AICA_SHARE(sh4_link, sizeof(struct link_param), 0);
+	AICA_SHARE(sh4_lseek, sizeof(struct lseek_param), 0);
+	AICA_SHARE(sh4_read, sizeof(struct read_param), 0);
+	AICA_SHARE(sh4_write, sizeof(struct write_param), 0);
 }
-

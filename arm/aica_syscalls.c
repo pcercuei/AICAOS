@@ -79,116 +79,52 @@ AICA_ADD_REMOTE(sh4_write, PRIORITY_DEFAULT);
 
 int _open_r(struct _reent *r, const char *name, int flags, int mode)
 {
-	int result;
 	struct open_param params = { name, strlen(name), flags, mode, };
-
-	if ( sh4_open(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_open(NULL, &params);
 }
 
 int _close_r(struct _reent *r, int file)
 {
-	int result;
-
-	if ( sh4_close(&result, &file) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_close(NULL, &file);
 }
 
 int _fstat_r(struct _reent *r, int file, struct stat *st)
 {
-	int result;
 	struct fstat_param params = { file, st, };
-
-	if ( sh4_fstat(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_fstat(NULL, &params);
 }
 
 int _stat_r(struct _reent *r, const char *file, struct stat *st)
 {
-	int result;
 	struct stat_param params = { file, strlen(file), st, };
-
-	if ( sh4_stat(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_stat(NULL, &params);
 }
 
 int _isatty_r(struct _reent *r, int file)
 {
-	int result;
-
-	if ( sh4_isatty(&result, &file) != 0 ) {
-		r->_errno = EAICA;
-		return 0;
-	}
-
-	return result;
+	return sh4_isatty(NULL, &file);
 }
 
 int _link_r(struct _reent *r, const char *old, const char *new)
 {
-	int result;
 	struct link_param params = { old, strlen(old), new, strlen(new), };
-
-	if ( sh4_link(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_link(NULL, &params);
 }
 
 off_t _lseek_r(struct _reent *r, int file, off_t ptr, int dir)
 {
-	int result;
 	struct lseek_param params = { file, ptr, dir, };
-
-	if ( sh4_lseek(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_lseek(NULL, &params);
 }
 
 _READ_WRITE_RETURN_TYPE _read_r(struct _reent *r, int file, void *ptr, size_t len)
 {
-	int result;
 	struct read_param params = { file, ptr, len, };
-
-	if ( sh4_read(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_read(NULL, &params);
 }
 
 _READ_WRITE_RETURN_TYPE _write_r(struct _reent *r, int file, const void *ptr, size_t len)
 {
-	int result;
 	struct write_param params = { file, ptr, len, };
-
-	if ( sh4_write(&result, &params) != 0 ) {
-		r->_errno = EAICA;
-		return -1;
-	}
-
-	return result;
+	return sh4_write(NULL, &params);
 }
-
