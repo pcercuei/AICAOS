@@ -6,10 +6,14 @@
 #include "../aica_registers.h"
 #include "../aica_common.h"
 #include "interrupt.h"
+#include "spinlock.h"
 #include "task.h"
 
 extern struct io_channel *__io_init;
 static struct io_channel *io_addr;
+
+static spinlock_t call_lock = SPINLOCK_INITIALIZER,
+				  fparams_lock = SPINLOCK_INITIALIZER;
 
 static AICA_SHARED(get_arm_func_id)
 {
@@ -74,31 +78,43 @@ void aica_exit(void)
 
 int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 {
-	uint32_t int_context;
 	int return_value;
 
 	if (id >= NB_MAX_FUNCTIONS)
 		return -EINVAL;
 
-	/* Protect from context changes. */
-	int_context = int_disable();
-
 	/* Wait here if a previous call is pending. */
-	while((*(volatile unsigned char *) &io_addr[ARM_TO_SH].cparams.sync)
-				|| (*(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_AVAIL))
+	for (;;) {
+		spinlock_lock(&fparams_lock);
+		if (*(unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status
+					== FUNCTION_CALL_AVAIL)
+			break;
+		spinlock_unlock(&fparams_lock);
 		task_reschedule();
+	}
 
+	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
+	spinlock_unlock(&fparams_lock);
+
+	spinlock_lock(&call_lock);
 	io_addr[ARM_TO_SH].cparams.id = id;
 	io_addr[ARM_TO_SH].cparams.prio = prio;
 	io_addr[ARM_TO_SH].cparams.in = in;
 	io_addr[ARM_TO_SH].cparams.out = out;
-	io_addr[ARM_TO_SH].cparams.sync = 255;
-	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_PENDING;
+	io_addr[ARM_TO_SH].cparams.sync = 1;
 
 	aica_interrupt();
 
+	/* Wait for the sync flag to be cleared by the SH4,
+	 * before unlocking the call mutex */
+	while (*(unsigned char *) &io_addr[ARM_TO_SH].cparams.sync)
+		task_reschedule();
+
+	spinlock_unlock(&call_lock);
+
 	/* We will wait until the call completes. */
-	while( *(volatile unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status != FUNCTION_CALL_DONE)
+	while( *(unsigned int *) &io_addr[ARM_TO_SH].fparams[id].call_status
+				!= FUNCTION_CALL_DONE)
 		task_reschedule();
 
 	return_value = io_addr[ARM_TO_SH].fparams[id].return_value;
@@ -106,7 +122,6 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 	/* Mark the function as available */
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_AVAIL;
 
-	int_restore(int_context);
 	return return_value;
 }
 
