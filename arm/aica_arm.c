@@ -119,6 +119,9 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 
 	return_value = io_addr[ARM_TO_SH].fparams[id].return_value;
 
+	/* Set the 'errno' variable to the value returned by the ARM */
+	errno = io_addr[ARM_TO_SH].fparams[id].err_no;
+
 	/* Mark the function as available */
 	io_addr[ARM_TO_SH].fparams[id].call_status = FUNCTION_CALL_AVAIL;
 
@@ -156,6 +159,10 @@ void aica_update_fparams_table(unsigned int id, struct function_params *fparams)
 static void task_birth(aica_funcp_t func, struct function_params *fparams)
 {
 	fparams->return_value = func(fparams->out.ptr, fparams->in.ptr);
+
+	/* Return the 'errno' variable to the SH4 */
+	fparams->err_no = errno;
+
 	fparams->call_status = FUNCTION_CALL_DONE;
 }
 

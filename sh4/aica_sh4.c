@@ -147,6 +147,9 @@ int __aica_call(unsigned int id, void *in, void *out, unsigned short prio)
 		aica_download(out, fparams.out.ptr, fparams.out.size);
 	return_value = fparams.return_value;
 
+	/* Set the 'errno' variable to the value returned by the ARM */
+	errno = fparams.err_no;
+
 	/* Mark the function as available */
 	fparams.call_status = FUNCTION_CALL_AVAIL;
 	aica_upload(&io_addr_arm[SH_TO_ARM].fparams[id], &fparams, sizeof(struct function_params));
@@ -189,6 +192,9 @@ static void * aica_arm_fiq_hdl_thd(void *param)
 
 	/* Call the function. */
 	fparams.return_value = (*func)(fparams.out.ptr, fparams.in.ptr);
+
+	/* Transfer the 'errno' variable to the ARM */
+	fparams.err_no = errno;
 
 	/* Upload the output data. */
 	if (fparams.out.size > 0)

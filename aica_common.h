@@ -49,6 +49,9 @@ struct function_params
 
 	/* Integer value returned by the function */
 	int return_value;
+
+	/* Contains the error code (if error there is) */
+	int err_no;
 };
 
 /* Contains the parameters relative to one
