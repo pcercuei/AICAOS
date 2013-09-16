@@ -10,13 +10,13 @@
 
 void int_restore(uint32_t context)
 {
-	asm volatile("msr CPSR_c,%0" : : "r"(context));
+	__asm__ volatile("msr CPSR_c,%0" : : "r"(context));
 }
 
 uint32_t int_disable(void)
 {
 	register uint32_t cpsr;
-	asm volatile("mrs %0,CPSR" : "=r"(cpsr) :);
+	__asm__ volatile("mrs %0,CPSR" : "=r"(cpsr) :);
 
 	int_restore(cpsr | I_BIT | F_BIT);
 	return cpsr;
@@ -25,7 +25,7 @@ uint32_t int_disable(void)
 uint32_t int_enable(void)
 {
 	register uint32_t cpsr;
-	asm volatile("mrs %0,CPSR" : "=r"(cpsr) :);
+	__asm__ volatile("mrs %0,CPSR" : "=r"(cpsr) :);
 
 	int_restore(cpsr & ~(I_BIT | F_BIT));
 	return cpsr;
@@ -34,7 +34,7 @@ uint32_t int_enable(void)
 int int_enabled(void)
 {
 	register uint32_t cpsr;
-	asm volatile("mrs %0,CPSR" : "=r"(cpsr) :);
+	__asm__ volatile("mrs %0,CPSR" : "=r"(cpsr) :);
 	return !(cpsr & (I_BIT | F_BIT));
 }
 

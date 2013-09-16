@@ -58,7 +58,7 @@ void task_exit(void)
 			if (hdl->task == current_task) {
 
 				/* Revert to the main stack */
-				asm volatile("ldr sp,=__stack");
+				__asm__ volatile("ldr sp,=__stack");
 
 				SLIST_REMOVE(&tasks[i], hdl, TaskHandler, next);
 				free(hdl->task->stack);
